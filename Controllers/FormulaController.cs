@@ -70,7 +70,7 @@ namespace App.Controllers
         }
 
         // PUT: api/Formula/5
-        [HttpPut("{id}")]
+        [HttpPut("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
         public async Task<IActionResult> PutFormula(int id, FormulaDTO formulaDTO)
         {
             // Built-in model validation.
@@ -109,7 +109,7 @@ namespace App.Controllers
         }
 
         // POST: api/Formula
-        [HttpPost]
+        [HttpPost, Authorize(Policy = PolicyReference.AccreditedOnly)]
         public async Task<ActionResult<Formula>> PostFormula(FormulaDTO formulaDTO)
         {
             // Built-in model validation.
@@ -144,7 +144,7 @@ namespace App.Controllers
         }
 
         // DELETE: api/Formula/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
         public async Task<IActionResult> DeleteFormula(int id)
         {
             var formula = await _context.Formula.FindAsync(id);
