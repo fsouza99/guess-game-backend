@@ -44,7 +44,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.Name = "PalpiteAmigo";
+    options.Cookie.Name = "GuessGame";
 });
 
 

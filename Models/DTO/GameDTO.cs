@@ -24,6 +24,6 @@ namespace App.Models
         [Required]
         public string ScoringRules { get; set; } = default!;
         
-        public DateTime SubsDeadline { get; set; }
+        public DateTime? SubsDeadline { get; set; }
     }
 }

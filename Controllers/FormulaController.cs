@@ -27,7 +27,7 @@ namespace App.Controllers
         }
 
         // GET: api/Formula
-        [HttpGet]
+        [HttpGet, Authorize(Policy = PolicyReference.AccreditedOnly)]
         public async Task<ActionResult<IEnumerable<Object>>> GetFormula()
         {
             var list = await _context.Formula.ToListAsync();
@@ -48,7 +48,7 @@ namespace App.Controllers
         }
 
         // GET: api/Formula/5
-        [HttpGet("{id}")]
+        [HttpGet("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
         public async Task<ActionResult<Object>> GetFormula(int id)
         {
             var formula = await _context.Formula.FindAsync(id);

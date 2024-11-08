@@ -1,6 +1,7 @@
 using App.Authorization.References;
 using App.Identity.Data;
 using App.Models;
+using App.StaticTools;
 using Microsoft.AspNetCore.Identity;
 using System.IO;
 
@@ -13,6 +14,9 @@ public class DbInitializer
 
     // The password used by all added users.
     private const string StdPass = "W8$14#4u$wnuCX0suO7#a@82i2754k$2";
+
+    // The ID key of the regular user to be added.
+    private const string RegularUserId = "regular-user-1";
 
     private string ReadJsonFileAsString(string file)
     {
@@ -31,6 +35,15 @@ public class DbInitializer
     private void AddCompetitions()
     {
         Console.Write("Adding \"Competition\" entity 1... ");
+
+        string template = ReadJsonFileAsString("DataTemplate.json");
+        string data = ReadJsonFileAsString("CompData.json");
+
+        // if (!JsonDataChecker.DataOnTemplate(template, data))
+        // {
+        //     throw new Exception("Data does not match template.");
+        // }
+
         var competition = new Competition
         {
             Active = true,
@@ -39,7 +52,7 @@ public class DbInitializer
             FormulaID = 1,
             ID = 1,
             Name = "Copa do Mundo da FIFA Catar 2022",
-            Data = ReadJsonFileAsString("CompData.json")
+            Data = data
         };
         _context.Competition.Add(competition);
         Console.WriteLine("Done.");
@@ -52,14 +65,28 @@ public class DbInitializer
     private void AddFormulas()
     {
         Console.Write("Adding \"Formula\" entity 1... ");
+
+        string dataTemp = ReadJsonFileAsString("DataTemplate.json");
+        string srulesTemp = ReadJsonFileAsString("ScoringRulesTemplate.json");
+
+        // if (!JsonDataChecker.DataTemplate(dataTemp))
+        // {
+        //     throw new Exception("Invalid data template.");
+        // }
+        
+        // if (!JsonDataChecker.ScoringRulesTemplate(srulesTemp))
+        // {
+        //     throw new Exception("Invalid scoring rules template.");
+        // }
+
         var formula = new Formula
         {
             Creation = DateTime.Now,
             Description = string.Concat(Enumerable.Repeat("description ", 85)),
             ID = 1,
             Name = "1998-to-2022-world-cup",
-            DataTemplate = ReadJsonFileAsString("DataTemplate.json"),
-            ScoringRulesTemplate = ReadJsonFileAsString("ScoringRulesTemplate.json")
+            DataTemplate = dataTemp,
+            ScoringRulesTemplate = srulesTemp
         };
         _context.Formula.Add(formula);
         Console.WriteLine("Done.");
@@ -71,20 +98,86 @@ public class DbInitializer
 
     private void AddGames()
     {
+        string template = ReadJsonFileAsString("ScoringRulesTemplate.json");
+        string srules = ReadJsonFileAsString("GameScoringRules.json");
+
+        // if (!JsonDataChecker.ScoringRulesTemplate(template))
+        // {
+        //     throw new Exception("Scoring rules template is invalid.");
+        // }
+        
+        // if (!JsonDataChecker.ScoringRulesOnTemplate(template, srules))
+        // {
+        //     throw new Exception("Scoring rules do not match template.");
+        // }
+
         Console.Write("Adding \"Game\" entity 1... ");
-        var game = new Game
+
+        var free_game = new Game
         {
             CompetitionID = 1,
             Creation = DateTime.Now,
             Description = string.Concat(Enumerable.Repeat("description ", 85)),
             ID = 1,
-            MaxGuessCount = 3,
-            Name = "Lorem Ipsum Dolor",
-            ScoringRules = ReadJsonFileAsString("GameScoringRules.json"),
-            SubsDeadline = DateTime.Now.AddDays(7),
-            AppUserID = "regular-user-1"
+            MaxGuessCount = 100,
+            Name = "Free Game - No restrictions",
+            ScoringRules = srules,
+            SubsDeadline = DateTime.Now.AddYears(1),
+            AppUserID = RegularUserId
         };
-        _context.Game.Add(game);
+        _context.Game.Add(free_game);
+        Console.WriteLine("Done.");
+
+        Console.Write("Adding \"Game\" entity 2... ");
+
+        var old_game = new Game
+        {
+            CompetitionID = 1,
+            Creation = DateTime.Now.AddYears(-2),
+            Description = string.Concat(Enumerable.Repeat("description ", 85)),
+            ID = 2,
+            MaxGuessCount = 100,
+            Name = "Old Game - Deadline Passed",
+            ScoringRules = srules,
+            SubsDeadline = DateTime.Now.AddYears(-1),
+            AppUserID = RegularUserId
+        };
+        _context.Game.Add(old_game);
+        Console.WriteLine("Done.");
+
+        Console.Write("Adding \"Game\" entity 3... ");
+
+        var single_player_game = new Game
+        {
+            CompetitionID = 1,
+            Creation = DateTime.Now,
+            Description = string.Concat(Enumerable.Repeat("description ", 85)),
+            ID = 3,
+            MaxGuessCount = 1,
+            Name = "Single Player Game - 1 Guess",
+            ScoringRules = srules,
+            SubsDeadline = DateTime.Now.AddYears(1),
+            AppUserID = RegularUserId
+        };
+        _context.Game.Add(single_player_game);
+        Console.WriteLine("Done.");
+
+        Console.Write("Adding \"Game\" entity 4... ");
+
+        var private_game = new Game
+        {
+            CompetitionID = 1,
+            Creation = DateTime.Now,
+            Description = string.Concat(Enumerable.Repeat("description ", 85)),
+            ID = 4,
+            MaxGuessCount = 100,
+            Name = "Private Game - Passcode Needed",
+            Passcode = "12345",
+            ScoringRules = srules,
+            SubsDeadline = DateTime.Now.AddYears(1),
+            AppUserID = RegularUserId
+        };
+        _context.Game.Add(private_game);
         Console.WriteLine("Done.");
 
         Console.Write("Saving changes... ");
@@ -94,14 +187,21 @@ public class DbInitializer
 
     private void AddGuesses()
     {
+        string template = ReadJsonFileAsString("DataTemplate.json");
+        
         for (int i = 1; i <= 5; i++)
         {
             Console.Write($"Adding \"Guess\" entity {i}... ");
+            string data = ReadJsonFileAsString($"Guess{i}.json");
+            if (!JsonDataChecker.DataOnTemplate(template, data))
+            {
+                throw new Exception("Data does not match template.");
+            }
             var guess = new Guess
             {
                 AuthorName = $"Author Name {i}",
                 Creation = DateTime.Now.AddHours(-i),
-                Data = ReadJsonFileAsString($"Guess{i}.json"),
+                Data = data,
                 GameID = 1,
                 Number = i,
                 Score = 0
@@ -149,7 +249,7 @@ public class DbInitializer
             Email="gfritz@hotmail.com",
             EmailConfirmed=true,
             UserName="gfritz@hotmail.com",
-            Id = "regular-user-1"
+            Id = RegularUserId
         };
         await manager.CreateAsync(user3, StdPass);
         Console.WriteLine("Done.");
