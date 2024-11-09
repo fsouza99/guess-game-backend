@@ -141,13 +141,14 @@ namespace App.Controllers
                 Creation = DateTime.Now,
                 Data = guessDTO.Data,
                 GameID = guessDTO.GameID,
+                Number = gameGuessCount + 1,
                 Score = GuessScorer.Evaluate(guessDTO.Data, compData, game.ScoringRules)
             };
             
             _context.Guess.Add(guess);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetGuess), new { gameId = guess.GameID, number = guess.Number }, guess);
+            return CreatedAtAction(nameof(GetGuess), new { gameID = guess.GameID, number = guess.Number }, guess);
         }
 
         // DELETE: api/Guess/5/5
@@ -157,7 +158,6 @@ namespace App.Controllers
             // Guess check.
             var guess = _context.Guess
                 .Where(g => g.GameID == gameId && g.Number == number)
-                .Include(g => g.Game)
                 .FirstOrDefault();
             if (guess is null)
             {
@@ -166,8 +166,9 @@ namespace App.Controllers
 
             // Only game owner and site team can delete.
             // Conveniently reuse the AuthorizationHandler for Game model class.
+            var game = await _context.Game.FindAsync(gameId);
             var authorization = await _authorizationService
-                .AuthorizeAsync(User, guess.Game, Operations.Delete);
+                .AuthorizeAsync(User, game, Operations.Delete);
             if (!authorization.Succeeded)
             {
                 return Forbid();

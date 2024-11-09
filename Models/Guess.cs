@@ -9,7 +9,7 @@ namespace App.Models
         [Required]
         [StringLength(32)]
         public string AuthorName { get; set; } = default!;
-                
+        
         public DateTime Creation { get; set; }
 
         [Required]
@@ -21,9 +21,5 @@ namespace App.Models
         public int Number { get; set; } // PK2
 
         public int Score { get; set; }
-        
-        // Navigation
-
-        public Game Game { get; set; } = default!;
     }
 }
