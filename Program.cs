@@ -47,7 +47,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "GuessGame";
 });
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -62,8 +61,11 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
     context.Database.EnsureCreated();
-    var dbinit = new DbInitializer(services, context);
-    dbinit.Initialize();
+    if (!context.Formula.Any())
+    {
+        var dbinit = new DbInitializer(services, context);
+        dbinit.Initialize();
+    }
 }
 
 // app.UseHttpsRedirection();

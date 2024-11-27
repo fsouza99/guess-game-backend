@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace App.Models
 {
@@ -21,8 +22,7 @@ namespace App.Models
         [StringLength(8)]
         public string? Passcode { get; set; }
 
-        [Required]
-        public string ScoringRules { get; set; } = default!;
+        public JsonDocument ScoringRules { get; set; } = default!;
         
         public DateTime? SubsDeadline { get; set; }
     }

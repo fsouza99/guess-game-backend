@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace App.Models
 {
@@ -9,8 +10,7 @@ namespace App.Models
         [StringLength(32)]
         public string AuthorName { get; set; } = default!;
                 
-        [Required]
-        public string Data { get; set; } = default!;
+        public JsonDocument Data { get; set; } = default!;
         
         public int GameID { get; set; }
 

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace App.Controllers
@@ -39,7 +40,7 @@ namespace App.Controllers
                 var obj = new {
                     AuthorName = guess.AuthorName,
                     Creation = guess.Creation,
-                    Data = guess.Data,
+                    Data = JsonDocument.Parse(guess.Data),
                     GameID = guess.GameID,
                     Number = guess.Number,
                     Score = guess.Score
@@ -63,7 +64,7 @@ namespace App.Controllers
             {
                 AuthorName = guess.AuthorName,
                 Creation = guess.Creation,
-                Data = guess.Data,
+                Data = JsonDocument.Parse(guess.Data),
                 GameID = guess.GameID,
                 Number = guess.Number,
                 Score = guess.Score
@@ -121,28 +122,33 @@ namespace App.Controllers
                 .Where(c => c.ID == game.CompetitionID)
                 .Select(c => c.FormulaID)
                 .First();
-            string dataTemp = _context.Formula
+            string rawDataTemp = _context.Formula
                 .Where(f => f.ID == formulaId)
                 .Select(f => f.DataTemplate)
                 .First();
+            var dataTemp = JsonDocument.Parse(rawDataTemp);
             if (!JsonDataChecker.DataOnTemplate(dataTemp, guessDTO.Data))
             {
                 return BadRequest(MessageRepo.UnfitData);
             }
 
             // Creation.
-            string compData = _context.Competition
+            string rawCompData = _context.Competition
                 .Where(c => c.ID == game.CompetitionID)
                 .Select(c => c.Data)
                 .First();
+            string rawGuessData = JsonSerializer.Serialize(guessDTO.Data.RootElement);
+            var compData = JsonDocument.Parse(rawCompData);
+            var sRules = JsonDocument.Parse(game.ScoringRules);
+            int score = GuessScorer.Evaluate(guessDTO.Data, compData, sRules);
             var guess = new Guess
             {
                 AuthorName = guessDTO.AuthorName,
                 Creation = DateTime.Now,
-                Data = guessDTO.Data,
+                Data = rawGuessData,
                 GameID = guessDTO.GameID,
                 Number = gameGuessCount + 1,
-                Score = GuessScorer.Evaluate(guessDTO.Data, compData, game.ScoringRules)
+                Score = score
             };
             
             _context.Guess.Add(guess);

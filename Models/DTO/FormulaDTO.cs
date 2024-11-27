@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace App.Models
 {
@@ -13,10 +14,8 @@ namespace App.Models
         [StringLength(32)]
         public string Name { get; set; } = default!;
         
-        [Required]
-        public string DataTemplate { get; set; } = default!;
+        public JsonDocument DataTemplate { get; set; } = default!;
 
-        [Required]
-        public string ScoringRulesTemplate { get; set; } = default!;
+        public JsonDocument ScoringRulesTemplate { get; set; } = default!;
     }
 }

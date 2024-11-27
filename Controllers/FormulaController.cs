@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace App.Controllers
@@ -39,8 +40,8 @@ namespace App.Controllers
                     Description = formula.Description,
                     ID = formula.ID,
                     Name = formula.Name,
-                    DataTemplate = formula.DataTemplate,
-                    ScoringRulesTemplate = formula.ScoringRulesTemplate
+                    DataTemplate = JsonDocument.Parse(formula.DataTemplate),
+                    ScoringRulesTemplate = JsonDocument.Parse(formula.ScoringRulesTemplate)
                 };
                 result.Add(obj);
             }
@@ -62,8 +63,8 @@ namespace App.Controllers
                 Description = formula.Description,
                 ID = formula.ID,
                 Name = formula.Name,
-                DataTemplate = formula.DataTemplate,
-                ScoringRulesTemplate = formula.ScoringRulesTemplate
+                DataTemplate = JsonDocument.Parse(formula.DataTemplate),
+                ScoringRulesTemplate = JsonDocument.Parse(formula.ScoringRulesTemplate)
             };
 
             return result;
@@ -119,22 +120,21 @@ namespace App.Controllers
             }
 
             // Check template conformance.
-            if (!JsonDataChecker.DataTemplate(formulaDTO.DataTemplate))
-            {
-                return BadRequest(MessageRepo.BadTemplate);
-            }
-            if (!JsonDataChecker.ScoringRulesTemplate(formulaDTO.ScoringRulesTemplate))
+            if (!CheckTemplates(formulaDTO))
             {
                 return BadRequest(MessageRepo.BadTemplate);
             }
 
+            // Creation.
+            var rawDataTemp = JsonSerializer.Serialize(formulaDTO.DataTemplate.RootElement);
+            var rawSRulesTemp = JsonSerializer.Serialize(formulaDTO.ScoringRulesTemplate.RootElement);
             var formula = new Formula
             {
                 Creation = DateTime.Now,
                 Description = formulaDTO.Description,
                 Name = formulaDTO.Name,
-                DataTemplate = formulaDTO.DataTemplate,
-                ScoringRulesTemplate = formulaDTO.ScoringRulesTemplate
+                DataTemplate = rawDataTemp,
+                ScoringRulesTemplate = rawSRulesTemp
             };
 
             _context.Formula.Add(formula);
@@ -157,6 +157,13 @@ namespace App.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private bool CheckTemplates(FormulaDTO formulaDTO)
+        {
+            return
+                JsonDataChecker.DataTemplate(formulaDTO.DataTemplate) &&
+                JsonDataChecker.ScoringRulesTemplate(formulaDTO.ScoringRulesTemplate);
         }
 
         private bool FormulaExists(int id)

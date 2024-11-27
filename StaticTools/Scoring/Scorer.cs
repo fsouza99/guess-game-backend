@@ -9,13 +9,13 @@ public static class GuessScorer
 {
 	/// <summary>
 	/// Evaluates a guess based on competition data and scoring rules.
-	/// All of these need to be previously validated JSON strings.
+	/// All of these need to be previously validated and mutually compatible to each other.
 	/// </summary>
-	public static int Evaluate(string guess, string reference, string rules)
+	public static int Evaluate(JsonDocument guess, JsonDocument reference, JsonDocument rules)
 	{
-		JsonElement guessRoot = JsonDocument.Parse(guess).RootElement;
-		JsonElement referenceRoot = JsonDocument.Parse(reference).RootElement;
-		JsonElement rulesRoot = JsonDocument.Parse(rules).RootElement;
+		JsonElement guessRoot = guess.RootElement;
+		JsonElement referenceRoot = reference.RootElement;
+		JsonElement rulesRoot = rules.RootElement;
 
 		int total = 0;
 		var properties = guessRoot.EnumerateObject();

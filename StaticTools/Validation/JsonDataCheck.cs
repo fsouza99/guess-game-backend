@@ -8,20 +8,6 @@ namespace App.StaticTools;
 /// </summary>
 public static class JsonDataChecker
 {
-	private static JsonDocument? TryParse(string data)
-	{
-		JsonDocument? dataDoc;
-		try
-		{
-			dataDoc = JsonDocument.Parse(data);
-		}
-		catch (Exception)
-		{
-			dataDoc = null;
-		}
-		return dataDoc;
-	}
-
 	private static bool ElementOnDataTemplate(JsonElement template, JsonElement element)
 	{
 		// Element type must match the template.
@@ -77,21 +63,13 @@ public static class JsonDataChecker
 	}
 
 	/// <summary>
-	/// Checks the conformance of a data JSON string with a template.
-	/// The JSON string representing the template is expected to be valid.
+	/// Checks the conformance of JSON data with a template.
+	/// The JSON of the template is expected to be valid.
 	/// </summary>
-	public static bool DataOnTemplate(string template, string data)
+	public static bool DataOnTemplate(JsonDocument template, JsonDocument data)
 	{
-		JsonDocument templateDoc = JsonDocument.Parse(template);
-		JsonDocument? dataDoc = TryParse(data);
-
-		if (dataDoc is null)
-		{
-			return false;
-		}
-
-		JsonElement templateRoot = templateDoc.RootElement;
-		JsonElement dataRoot = dataDoc.RootElement;
+		JsonElement templateRoot = template.RootElement;
+		JsonElement dataRoot = data.RootElement;
 
 		// Data must be an object.
 		if (dataRoot.ValueKind != JsonValueKind.Object)
@@ -132,18 +110,11 @@ public static class JsonDataChecker
 	}
 
 	/// <summary>
-	/// Validates a JSON string representing a template for competition data.
+	/// Validates JSON data representing a template for competition data.
 	/// </summary>
-	public static bool DataTemplate(string template)
+	public static bool DataTemplate(JsonDocument template)
 	{
-		JsonDocument? templateDoc = TryParse(template);
-		
-		if (templateDoc is null)
-		{
-			return false;
-		}
-
-		JsonElement templateRoot = templateDoc.RootElement;
+		JsonElement templateRoot = template.RootElement;
 
 		// Template must be an object.
 		if (templateRoot.ValueKind != JsonValueKind.Object)
@@ -189,18 +160,11 @@ public static class JsonDataChecker
 	}
 
 	/// <summary>
-	/// Validates a JSON string representing a template for scoring rules.
+	/// Validates JSON data representing a template for scoring rules.
 	/// </summary>
-	public static bool ScoringRulesTemplate(string template)
+	public static bool ScoringRulesTemplate(JsonDocument template)
 	{
-		JsonDocument? templateDoc = TryParse(template);
-
-		if (templateDoc is null)
-		{
-			return false;
-		}
-
-		JsonElement templateRoot = templateDoc.RootElement;
+		JsonElement templateRoot = template.RootElement;
 
 		// Template must be an object.
 		if (templateRoot.ValueKind != JsonValueKind.Object)
@@ -229,21 +193,13 @@ public static class JsonDataChecker
 	}
 
 	/// <summary>
-	/// Checks the conformance of a scoring rules JSON string with a template.
-	/// The JSON string representing the template is expected to be valid.
+	/// Checks the conformance of JSON data representing scoring rules with a template.
+	/// The JSON of the template is expected to be valid.
 	/// </summary>
-	public static bool ScoringRulesOnTemplate(string template, string data, int min=0, int max=1000)
+	public static bool ScoringRulesOnTemplate(JsonDocument template, JsonDocument data, int min=0, int max=1000)
 	{
-		JsonDocument templateDoc = JsonDocument.Parse(template);
-		JsonDocument? dataDoc = TryParse(data);
-
-		if (dataDoc is null)
-		{
-			return false;
-		}
-
-		JsonElement templateRoot = templateDoc.RootElement;
-		JsonElement dataRoot = dataDoc.RootElement;
+		JsonElement templateRoot = template.RootElement;
+		JsonElement dataRoot = data.RootElement;
 
 		// Data must be an object.
 		if (dataRoot.ValueKind != JsonValueKind.Object)

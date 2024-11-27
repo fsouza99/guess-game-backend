@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace App.Controllers
@@ -40,7 +41,7 @@ namespace App.Controllers
                     FormulaID = competition.FormulaID,
                     ID = competition.ID,
                     Name = competition.Name,
-                    Data = competition.Data
+                    Data = JsonDocument.Parse(competition.Data)
                 };
                 result.Add(obj);
             }
@@ -65,7 +66,7 @@ namespace App.Controllers
                 FormulaID = competition.FormulaID,
                 ID = competition.ID,
                 Name = competition.Name,
-                Data = competition.Data
+                Data = JsonDocument.Parse(competition.Data)
             };
 
             return result;
@@ -89,16 +90,17 @@ namespace App.Controllers
             }
 
             // If "Data" is to be changed...
-            if (competition.Data != competitionDTO.Data)
+            var rawData = JsonSerializer.Serialize(competitionDTO.Data.RootElement);
+            if (competition.Data != rawData)
             {
                 // Updated data must be in accordance to template.
-                if (!IsDataFit(competition.FormulaID, competitionDTO.Data))
+                if (!CheckData(competitionDTO))
                 {
                     return BadRequest(MessageRepo.UnfitData);
                 }
 
                 // Update.
-                competition.Data = competitionDTO.Data;
+                competition.Data = rawData;
 
                 // Guesses must be reassessed.
                 var games = _context.Game
@@ -106,9 +108,11 @@ namespace App.Controllers
                     .Include(g => g.Guesses);
                 foreach (var game in games)
                 {
+                    var gameSRules = JsonDocument.Parse(game.ScoringRules);
                     foreach (var guess in game.Guesses)
                     {
-                        guess.Score = GuessScorer.Evaluate(guess.Data, competition.Data, game.ScoringRules);
+                        var guessData = JsonDocument.Parse(guess.Data);
+                        guess.Score = GuessScorer.Evaluate(guessData, competitionDTO.Data, gameSRules);
                     }
                 }
             }
@@ -153,16 +157,18 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            // Inserted data must be in accordance to template.
-            if (!IsDataFit(competitionDTO.FormulaID, competitionDTO.Data))
+            // "Data" must be in accordance to template.
+            if (!CheckData(competitionDTO))
             {
                 return BadRequest(MessageRepo.UnfitData);
             }
 
+            // Creation.
+            var rawData = JsonSerializer.Serialize(competitionDTO.Data.RootElement);
             var competition = new Competition
             {
                 Creation = DateTime.Now,
-                Data = competitionDTO.Data,
+                Data = rawData,
                 Description = competitionDTO.Description,
                 FormulaID = competitionDTO.FormulaID,
                 Name = competitionDTO.Name
@@ -195,13 +201,14 @@ namespace App.Controllers
             return _context.Competition.Any(e => e.ID == id);
         }
 
-        private bool IsDataFit(int formulaId, string compData)
+        private bool CheckData(CompetitionDTO competitionDTO)
         {
-            string rwdt = _context.Formula
-                .Where(f => f.ID == formulaId)
+            string rawDataTemp = _context.Formula
+                .Where(f => f.ID == competitionDTO.FormulaID)
                 .Select(f => f.DataTemplate)
                 .First();
-            return JsonDataChecker.DataOnTemplate(rwdt, compData);
+            var dataTemp = JsonDocument.Parse(rawDataTemp);
+            return JsonDataChecker.DataOnTemplate(dataTemp, competitionDTO.Data);
         }
     }
 }

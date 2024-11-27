@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace App.Controllers
@@ -47,7 +48,7 @@ namespace App.Controllers
                     ID = game.ID,
                     MaxGuessCount = game.MaxGuessCount,
                     Name = game.Name,
-                    ScoringRules = game.ScoringRules,
+                    ScoringRules = JsonDocument.Parse(game.ScoringRules),
                     SubsDeadline = game.SubsDeadline
                 };
                 result.Add(obj);
@@ -73,7 +74,7 @@ namespace App.Controllers
                 ID = game.ID,
                 MaxGuessCount = game.MaxGuessCount,
                 Name = game.Name,
-                ScoringRules = game.ScoringRules,
+                ScoringRules = JsonDocument.Parse(game.ScoringRules),
                 SubsDeadline = game.SubsDeadline
             };
 
@@ -152,16 +153,19 @@ namespace App.Controllers
             }
 
             // "ScoringRules" must be in accordance to template.
-            string srt = _context.Formula
+            string rawSRulesTemp = _context.Formula
                 .Where(f => f.ID == competition.FormulaID)
                 .Select(f => f.ScoringRulesTemplate)
                 .First();
-            if (!JsonDataChecker.ScoringRulesOnTemplate(srt, gameDTO.ScoringRules))
+            var sRulesTemp = JsonDocument.Parse(rawSRulesTemp);
+            if (!JsonDataChecker.ScoringRulesOnTemplate(sRulesTemp, gameDTO.ScoringRules))
             {
                 return BadRequest(MessageRepo.UnfitData);
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            // Creation.
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            string rawSRules = JsonSerializer.Serialize(gameDTO.ScoringRules.RootElement);
             var game = new Game
             {
                 AppUserID = userId,
@@ -170,7 +174,7 @@ namespace App.Controllers
                 MaxGuessCount = gameDTO.MaxGuessCount,
                 Name = gameDTO.Name,
                 Passcode = gameDTO.Passcode,
-                ScoringRules = gameDTO.ScoringRules,
+                ScoringRules = rawSRules,
                 SubsDeadline = gameDTO.SubsDeadline
             };
 
