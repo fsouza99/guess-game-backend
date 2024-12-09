@@ -51,7 +51,7 @@ namespace App.Controllers
         }
 
         // GET: api/Formula
-        [HttpGet, Authorize(Policy = PolicyReference.AccreditedOnly)]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<Object>>> GetFormula(int? offset, int? limit, string name = "")
         {
             var query = Refiner.Bound(Query(name), offset, limit);
@@ -60,7 +60,7 @@ namespace App.Controllers
         }
 
         // GET: api/Formula/5
-        [HttpGet("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Object>> GetFormula(int id)
         {
             var formula = await _context.Formula.FindAsync(id);
@@ -73,7 +73,7 @@ namespace App.Controllers
         }
 
         // PUT: api/Formula/5
-        [HttpPut("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
+        [HttpPut("{id}")]
         public async Task<IActionResult> PutFormula(int id, FormulaDTO formulaDTO)
         {
             // Built-in model validation.
@@ -112,7 +112,7 @@ namespace App.Controllers
         }
 
         // POST: api/Formula
-        [HttpPost, Authorize(Policy = PolicyReference.AccreditedOnly)]
+        [HttpPost]
         public async Task<ActionResult<Formula>> PostFormula(FormulaDTO formulaDTO)
         {
             // Built-in model validation.
@@ -146,7 +146,7 @@ namespace App.Controllers
         }
 
         // DELETE: api/Formula/5
-        [HttpDelete("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFormula(int id)
         {
             var formula = await _context.Formula.FindAsync(id);
