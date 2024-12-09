@@ -26,25 +26,47 @@ namespace App.Controllers
             _context = context;
         }
 
+        private static Object CompetitionView(Competition competition) => new {
+            Active = competition.Active,
+            Creation = competition.Creation,
+            Data = JsonDocument.Parse(competition.Data),
+            Description = competition.Description,
+            FormulaID = competition.FormulaID,
+            ID = competition.ID,
+            Name = competition.Name
+        };
+
+        private IQueryable<Competition> Query(int? formulaId, string name = "", bool activeOnly = false)
+        {
+            var query = _context.Competition.Where(c => EF.Functions.Like(c.Name, $"%{name}%"));
+            if (formulaId is not null)
+            {
+                query = query.Where(c => c.FormulaID == formulaId);
+            }
+            if (activeOnly)
+            {
+                query = query.Where(c => c.Active);
+            }
+            return query;
+        }
+
+        // GET: api/Competition/Meta
+        [HttpGet("Meta")]
+        public async Task<ActionResult<int>> GetCompetition(
+            int? formulaId, string name = "", bool activeOnly = false)
+        {
+            var query = Query(formulaId, name, activeOnly);
+            var count = await query.CountAsync();
+            return count;
+        }
+
         // GET: api/Competition
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Object>>> GetCompetition()
+        public async Task<ActionResult<IEnumerable<Object>>> GetCompetition(
+            int? offset, int? limit, int? formulaId, string name = "", bool activeOnly = false)
         {
-            var list = await _context.Competition.ToListAsync();
-            var result = new List<Object>();
-            foreach (var competition in list)
-            {
-                var obj = new {
-                    Active = competition.Active,
-                    Creation = competition.Creation,
-                    Description = competition.Description,
-                    FormulaID = competition.FormulaID,
-                    ID = competition.ID,
-                    Name = competition.Name,
-                    Data = JsonDocument.Parse(competition.Data)
-                };
-                result.Add(obj);
-            }
+            var query = Refiner.Bound(Query(formulaId, name, activeOnly), offset, limit);
+            var result = await query.Select(c => CompetitionView(c)).ToListAsync();
             return result;
         }
 
@@ -58,18 +80,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            var result = new
-            {
-                Active = competition.Active,
-                Creation = competition.Creation,
-                Description = competition.Description,
-                FormulaID = competition.FormulaID,
-                ID = competition.ID,
-                Name = competition.Name,
-                Data = JsonDocument.Parse(competition.Data)
-            };
-
-            return result;
+            return CompetitionView(competition);
         }
 
         // PUT: api/Competition/5

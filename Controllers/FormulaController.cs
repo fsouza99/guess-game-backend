@@ -27,24 +27,35 @@ namespace App.Controllers
             _context = context;
         }
 
+        private static Object FormulaView(Formula formula) => new {
+            Creation = formula.Creation,
+            DataTemplate = JsonDocument.Parse(formula.DataTemplate),
+            Description = formula.Description,
+            ID = formula.ID,
+            Name = formula.Name,
+            ScoringRulesTemplate = JsonDocument.Parse(formula.ScoringRulesTemplate)
+        };
+
+        private IQueryable<Formula> Query(string name = "")
+        {
+            return _context.Formula.Where(f => EF.Functions.Like(f.Name, $"%{name}%"));
+        }
+
+        // GET: api/Formula/Meta
+        [HttpGet("Meta")]
+        public async Task<ActionResult<int>> GetFormula(string name = "")
+        {
+            var query = Query(name);
+            var count = await query.CountAsync();
+            return count;
+        }
+
         // GET: api/Formula
         [HttpGet, Authorize(Policy = PolicyReference.AccreditedOnly)]
-        public async Task<ActionResult<IEnumerable<Object>>> GetFormula()
+        public async Task<ActionResult<IEnumerable<Object>>> GetFormula(int? offset, int? limit, string name = "")
         {
-            var list = await _context.Formula.ToListAsync();
-            var result = new List<Object>();
-            foreach (var formula in list)
-            {
-                var obj = new {
-                    Creation = formula.Creation,
-                    Description = formula.Description,
-                    ID = formula.ID,
-                    Name = formula.Name,
-                    DataTemplate = JsonDocument.Parse(formula.DataTemplate),
-                    ScoringRulesTemplate = JsonDocument.Parse(formula.ScoringRulesTemplate)
-                };
-                result.Add(obj);
-            }
+            var query = Refiner.Bound(Query(name), offset, limit);
+            var result = await query.Select(f => FormulaView(f)).ToListAsync();
             return result;
         }
 
@@ -58,16 +69,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            var result = new {
-                Creation = formula.Creation,
-                Description = formula.Description,
-                ID = formula.ID,
-                Name = formula.Name,
-                DataTemplate = JsonDocument.Parse(formula.DataTemplate),
-                ScoringRulesTemplate = JsonDocument.Parse(formula.ScoringRulesTemplate)
-            };
-
-            return result;
+            return FormulaView(formula);
         }
 
         // PUT: api/Formula/5

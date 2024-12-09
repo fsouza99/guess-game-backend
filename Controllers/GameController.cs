@@ -32,27 +32,42 @@ namespace App.Controllers
             _context = context;
         }
 
+        private static Object GameView(Game game) => new {
+            CompetitionID = game.CompetitionID,
+            Creation = game.Creation,
+            Description = game.Description,
+            ID = game.ID,
+            MaxGuessCount = game.MaxGuessCount,
+            Name = game.Name,
+            ScoringRules = JsonDocument.Parse(game.ScoringRules),
+            SubsDeadline = game.SubsDeadline
+        };
+
+        private IQueryable<Game> Query(int? competitionId, string name = "")
+        {
+            var query = _context.Game.Where(g => EF.Functions.Like(g.Name, $"%{name}%"));
+            if (competitionId is not null)
+            {
+                query = query.Where(g => g.CompetitionID == competitionId);
+            }
+            return query;
+        }
+
+        // GET: api/Game/Meta
+        [HttpGet("Meta")]
+        public async Task<ActionResult<int>> GetGame(int? competitionId, string name = "")
+        {
+            var query = Query(competitionId, name);
+            var count = await query.CountAsync();
+            return count;
+        }
+
         // GET: api/Game
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Object>>> GetGame()
+        public async Task<ActionResult<IEnumerable<Object>>> GetGame(int? offset, int? limit, int? competitionId, string name = "")
         {
-            var list = await _context.Game.ToListAsync();
-            var result = new List<Object>();
-            foreach (var game in list)
-            {
-                var obj = new
-                {
-                    CompetitionID = game.CompetitionID,
-                    Creation = game.Creation,
-                    Description = game.Description,
-                    ID = game.ID,
-                    MaxGuessCount = game.MaxGuessCount,
-                    Name = game.Name,
-                    ScoringRules = JsonDocument.Parse(game.ScoringRules),
-                    SubsDeadline = game.SubsDeadline
-                };
-                result.Add(obj);
-            }
+            var query = Refiner.Bound(Query(competitionId, name), offset, limit);
+            var result = await query.Select(g => GameView(g)).ToListAsync();
             return result;
         }
 
@@ -66,19 +81,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            var result = new
-            {
-                CompetitionID = game.CompetitionID,
-                Creation = game.Creation,
-                Description = game.Description,
-                ID = game.ID,
-                MaxGuessCount = game.MaxGuessCount,
-                Name = game.Name,
-                ScoringRules = JsonDocument.Parse(game.ScoringRules),
-                SubsDeadline = game.SubsDeadline
-            };
-
-            return result;
+            return GameView(game);
         }
 
         // PUT: api/Game/5
@@ -170,6 +173,7 @@ namespace App.Controllers
             {
                 AppUserID = userId,
                 CompetitionID = gameDTO.CompetitionID,
+                Creation = DateTime.Now,
                 Description = gameDTO.Description,
                 MaxGuessCount = gameDTO.MaxGuessCount,
                 Name = gameDTO.Name,

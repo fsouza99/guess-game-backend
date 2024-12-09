@@ -29,24 +29,38 @@ namespace App.Controllers
             _context = context;
         }
 
+        private static Object GuessView(Guess guess) => new {
+            AuthorName = guess.AuthorName,
+            Creation = guess.Creation,
+            Data = JsonDocument.Parse(guess.Data),
+            GameID = guess.GameID,
+            Number = guess.Number,
+            Score = guess.Score
+        };
+
+        private IQueryable<Guess> Query(int gameId, string authorName = "")
+        {
+            var query = _context.Guess
+                .Where(g => EF.Functions.Like(g.AuthorName, $"%{authorName}%"))
+                .Where(g => g.GameID == gameId);
+            return query;
+        }
+
+        // GET: api/Guess/Meta
+        [HttpGet("Meta")]
+        public async Task<ActionResult<int>> GetGuess(int gameId, string authorName = "")
+        {
+            var query = Query(gameId, authorName);
+            var count = await query.CountAsync();
+            return count;
+        }
+
         // GET: api/Guess
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Object>>> GetGuess()
+        public async Task<ActionResult<IEnumerable<Object>>> GetGuess(int? offset, int? limit, int gameId, string authorName = "")
         {
-            var list = await _context.Guess.ToListAsync();
-            var result = new List<Object>();
-            foreach (var guess in list)
-            {
-                var obj = new {
-                    AuthorName = guess.AuthorName,
-                    Creation = guess.Creation,
-                    Data = JsonDocument.Parse(guess.Data),
-                    GameID = guess.GameID,
-                    Number = guess.Number,
-                    Score = guess.Score
-                };
-                result.Add(obj);
-            }
+            var query = Refiner.Bound(Query(gameId, authorName), offset, limit);
+            var result = await query.Select(g => GuessView(g)).ToListAsync();
             return result;
         }
 
@@ -60,17 +74,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            var result = new
-            {
-                AuthorName = guess.AuthorName,
-                Creation = guess.Creation,
-                Data = JsonDocument.Parse(guess.Data),
-                GameID = guess.GameID,
-                Number = guess.Number,
-                Score = guess.Score
-            };
-
-            return result;
+            return GuessView(guess);
         }
 
         // POST: api/Guess
@@ -100,9 +104,10 @@ namespace App.Controllers
             }
 
             // Check deadline.
+            var dateTimeNow = DateTime.Now;
             if (game.SubsDeadline is not null)
             {
-                if (DateTime.Now > game.SubsDeadline)
+                if (dateTimeNow > game.SubsDeadline)
                 {
                     return Conflict(MessageRepo.DeadlineReached);
                 }
@@ -144,7 +149,7 @@ namespace App.Controllers
             var guess = new Guess
             {
                 AuthorName = guessDTO.AuthorName,
-                Creation = DateTime.Now,
+                Creation = dateTimeNow,
                 Data = rawGuessData,
                 GameID = guessDTO.GameID,
                 Number = gameGuessCount + 1,
