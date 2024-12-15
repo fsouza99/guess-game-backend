@@ -6,7 +6,7 @@ namespace App.Identity.Data;
 
 public class AppUser : IdentityUser
 {
-	[Required]
+	[PersonalData]
 	[StringLength(32)]
-	public string Name { get; set; } = default!;
+	public string? Name { get; set; }
 }

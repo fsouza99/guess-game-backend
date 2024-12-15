@@ -32,7 +32,7 @@ namespace App.Controllers
             _context = context;
         }
 
-        private static Object GameView(Game game, string CreatorName) => new {
+        private static Object GameView(Game game, string? CreatorName) => new {
             AuthorName = CreatorName,
             CompetitionID = game.CompetitionID,
             Creation = game.Creation,
@@ -44,7 +44,7 @@ namespace App.Controllers
             SubsDeadline = game.SubsDeadline
         };
 
-        private string CreatorName(string id)
+        private string? CreatorName(string id)
         {
             var creator = _context.AppUser.Find(id)!;
             return creator.Name;
