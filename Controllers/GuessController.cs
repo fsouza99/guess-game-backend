@@ -48,7 +48,7 @@ namespace App.Controllers
 
         // GET: api/Guess/Meta
         [HttpGet("Meta")]
-        public async Task<ActionResult<int>> GetGuess(int gameId, string authorName = "")
+        public async Task<ActionResult<int>> GetMetadata(int gameId, string authorName = "")
         {
             var query = Query(gameId, authorName);
             var count = await query.CountAsync();
@@ -57,9 +57,10 @@ namespace App.Controllers
 
         // GET: api/Guess
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Object>>> GetGuess(int? offset, int? limit, int gameId, string authorName = "")
+        public async Task<ActionResult<IEnumerable<Object>>> GetGuesses(
+            int? offset, int? limit, int gameId, string authorName = "")
         {
-            var query = Refiner.Bound(Query(gameId, authorName), offset, limit);
+            var query = QueryRefiner.Bound(Query(gameId, authorName), offset, limit);
             var result = await query.Select(g => GuessView(g)).ToListAsync();
             return result;
         }

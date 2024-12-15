@@ -43,7 +43,7 @@ namespace App.Controllers
 
         // GET: api/Formula/Meta
         [HttpGet("Meta")]
-        public async Task<ActionResult<int>> GetFormula(string name = "")
+        public async Task<ActionResult<int>> GetMetadata(string name = "")
         {
             var query = Query(name);
             var count = await query.CountAsync();
@@ -52,9 +52,10 @@ namespace App.Controllers
 
         // GET: api/Formula
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Object>>> GetFormula(int? offset, int? limit, string name = "")
+        public async Task<ActionResult<IEnumerable<Object>>> GetFormulas(
+            int? offset, int? limit, string name = "")
         {
-            var query = Refiner.Bound(Query(name), offset, limit);
+            var query = QueryRefiner.Bound(Query(name), offset, limit);
             var result = await query.Select(f => FormulaView(f)).ToListAsync();
             return result;
         }

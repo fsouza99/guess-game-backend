@@ -52,7 +52,7 @@ namespace App.Controllers
 
         // GET: api/Competition/Meta
         [HttpGet("Meta")]
-        public async Task<ActionResult<int>> GetCompetition(
+        public async Task<ActionResult<int>> GetMetadata(
             int? formulaId, string name = "", bool activeOnly = false)
         {
             var query = Query(formulaId, name, activeOnly);
@@ -62,10 +62,10 @@ namespace App.Controllers
 
         // GET: api/Competition
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Object>>> GetCompetition(
+        public async Task<ActionResult<IEnumerable<Object>>> GetCompetitions(
             int? offset, int? limit, int? formulaId, string name = "", bool activeOnly = false)
         {
-            var query = Refiner.Bound(Query(formulaId, name, activeOnly), offset, limit);
+            var query = QueryRefiner.Bound(Query(formulaId, name, activeOnly), offset, limit);
             var result = await query.Select(c => CompetitionView(c)).ToListAsync();
             return result;
         }

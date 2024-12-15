@@ -32,7 +32,8 @@ namespace App.Controllers
             _context = context;
         }
 
-        private static Object GameView(Game game) => new {
+        private static Object GameView(Game game, string CreatorName) => new {
+            AuthorName = CreatorName,
             CompetitionID = game.CompetitionID,
             Creation = game.Creation,
             Description = game.Description,
@@ -42,6 +43,12 @@ namespace App.Controllers
             ScoringRules = JsonDocument.Parse(game.ScoringRules),
             SubsDeadline = game.SubsDeadline
         };
+
+        private string CreatorName(string id)
+        {
+            var creator = _context.AppUser.Find(id)!;
+            return creator.Name;
+        }
 
         private IQueryable<Game> Query(int? competitionId, string name = "")
         {
@@ -55,7 +62,7 @@ namespace App.Controllers
 
         // GET: api/Game/Meta
         [HttpGet("Meta")]
-        public async Task<ActionResult<int>> GetGame(int? competitionId, string name = "")
+        public async Task<ActionResult<int>> GetMetadata(int? competitionId, string name = "")
         {
             var query = Query(competitionId, name);
             var count = await query.CountAsync();
@@ -64,10 +71,12 @@ namespace App.Controllers
 
         // GET: api/Game
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Object>>> GetGame(int? offset, int? limit, int? competitionId, string name = "")
+        public async Task<ActionResult<IEnumerable<Object>>> GetGames(
+            int? offset, int? limit, int? competitionId, string name = "")
         {
-            var query = Refiner.Bound(Query(competitionId, name), offset, limit);
-            var result = await query.Select(g => GameView(g)).ToListAsync();
+            var query = QueryRefiner.Bound(Query(competitionId, name), offset, limit);
+            var result = await query.Select(g => GameView(g, CreatorName(g.AppUserID))
+                ).ToListAsync();
             return result;
         }
 
@@ -81,7 +90,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            return GameView(game);
+            return GameView(game, CreatorName(game.AppUserID));
         }
 
         // PUT: api/Game/5

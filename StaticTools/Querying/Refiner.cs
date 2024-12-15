@@ -2,7 +2,7 @@ using System.Linq;
 
 namespace App.StaticTools;
 
-public static class Refiner
+public static class QueryRefiner
 {
 	/*! Applies boundaries to query, allowing for pagination. */
 	public static IQueryable<T> Bound<T>(IQueryable<T> query, int? offset, int? limit)

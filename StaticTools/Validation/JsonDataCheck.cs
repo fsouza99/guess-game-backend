@@ -10,7 +10,7 @@ public static class JsonDataChecker
 {
 	private static bool ElementOnDataTemplate(JsonElement template, JsonElement element)
 	{
-		// Element type must match the template.
+		// Element's type must match the template's.
 		if (template.ValueKind != element.ValueKind)
 		{
 			return false;

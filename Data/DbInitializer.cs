@@ -16,8 +16,9 @@ public class DbInitializer
     // The password used by all added users.
     private const string StdPass = "W8$14#4u$wnuCX0suO7#a@82i2754k$2";
 
-    // The ID key of the regular user to be added.
+    // The regular user to be added.
     private const string RegularUserId = "regular-user-1";
+    private const string RegularUserName = "Regular User";
 
     // Reads JSON file and returns its content appropriately.
     private JsonDocument ReadJsonFile(string file)
@@ -26,12 +27,6 @@ public class DbInitializer
         StreamReader reader = new StreamReader(filePath);
         string rawData = reader.ReadToEnd();
         return JsonDocument.Parse(rawData);
-    }
-
-    // Returns minified string representing JSON data.
-    private string JsonToString(JsonDocument data)
-    {
-        return JsonSerializer.Serialize(data.RootElement);
     }
 
     // Constructor
@@ -43,136 +38,78 @@ public class DbInitializer
 
     private void AddCompetitions()
     {
-        Console.Write("Adding \"Competition\" entity 1... ");
-
-        var data = ReadJsonFile("CompData.json");
-        var competition = new Competition
+        var objs = ReadJsonFile("Competitions.json").RootElement;
+        foreach (var obj in objs.EnumerateArray())
         {
-            Active = true,
-            Creation = DateTime.Now,
-            Description = string.Concat(Enumerable.Repeat("description ", 85)),
-            FormulaID = 1,
-            ID = 1,
-            Name = "Copa do Mundo da FIFA Catar 2022",
-            Data = JsonToString(data)
-        };
-        _context.Competition.Add(competition);
-        Console.WriteLine("Done.");
+            var competition = new Competition
+            {
+                Active = obj.GetProperty("Active").GetBoolean(),
+                Creation = DateTime.Now,
+                Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
+                Description = obj.GetProperty("Description").GetString()!,
+                FormulaID = obj.GetProperty("FormulaID").GetInt32(),
+                ID = obj.GetProperty("ID").GetInt32(),
+                Name = obj.GetProperty("Name").GetString()!
+            };
+            _context.Competition.Add(competition);
+        }
     }
 
     private void AddFormulas()
     {
-        Console.Write("Adding \"Formula\" entity 1... ");
-
-        var dataTemp = ReadJsonFile("DataTemplate.json");
-        var scoringRulesTemp = ReadJsonFile("ScoringRulesTemplate.json");
-        var formula = new Formula
+        var objs = ReadJsonFile("Formulas.json").RootElement;
+        foreach (var obj in objs.EnumerateArray())
         {
-            Creation = DateTime.Now,
-            Description = string.Concat(Enumerable.Repeat("description ", 85)),
-            ID = 1,
-            Name = "1998-to-2022-world-cup",
-            DataTemplate = JsonToString(dataTemp),
-            ScoringRulesTemplate = JsonToString(scoringRulesTemp)
-        };
-        _context.Formula.Add(formula);
-        Console.WriteLine("Done.");
+            var formula = new Formula
+            {
+                Creation = DateTime.Now,
+                DataTemplate = JsonSerializer.Serialize(obj.GetProperty("DataTemplate")),
+                Description = obj.GetProperty("Description").GetString()!,
+                ID = obj.GetProperty("ID").GetInt32(),
+                Name = obj.GetProperty("Name").GetString()!,
+                ScoringRulesTemplate = JsonSerializer.Serialize(obj.GetProperty("ScoringRulesTemplate"))
+            };
+            _context.Formula.Add(formula);
+        }
     }
 
     private void AddGames()
     {
-        var scoringRules = ReadJsonFile("GameScoringRules.json");
-        string rawScoringRules = JsonToString(scoringRules);
-
-        Console.Write("Adding \"Game\" entity 1... ");
-
-        var free_game = new Game
+        var objs = ReadJsonFile("Games.json").RootElement;
+        foreach (var obj in objs.EnumerateArray())
         {
-            CompetitionID = 1,
-            Creation = DateTime.Now,
-            Description = string.Concat(Enumerable.Repeat("description ", 85)),
-            ID = 1,
-            MaxGuessCount = 100,
-            Name = "Free Game - No restrictions",
-            ScoringRules = rawScoringRules,
-            SubsDeadline = DateTime.Now.AddYears(1),
-            AppUserID = RegularUserId
-        };
-        _context.Game.Add(free_game);
-        Console.WriteLine("Done.");
-
-        Console.Write("Adding \"Game\" entity 2... ");
-
-        var old_game = new Game
-        {
-            CompetitionID = 1,
-            Creation = DateTime.Now.AddYears(-2),
-            Description = string.Concat(Enumerable.Repeat("description ", 85)),
-            ID = 2,
-            MaxGuessCount = 100,
-            Name = "Old Game - Deadline Passed",
-            ScoringRules = rawScoringRules,
-            SubsDeadline = DateTime.Now.AddYears(-1),
-            AppUserID = RegularUserId
-        };
-        _context.Game.Add(old_game);
-        Console.WriteLine("Done.");
-
-        Console.Write("Adding \"Game\" entity 3... ");
-
-        var single_player_game = new Game
-        {
-            CompetitionID = 1,
-            Creation = DateTime.Now,
-            Description = string.Concat(Enumerable.Repeat("description ", 85)),
-            ID = 3,
-            MaxGuessCount = 1,
-            Name = "Single Player Game - 1 Guess",
-            ScoringRules = rawScoringRules,
-            SubsDeadline = DateTime.Now.AddYears(1),
-            AppUserID = RegularUserId
-        };
-        _context.Game.Add(single_player_game);
-        Console.WriteLine("Done.");
-
-        Console.Write("Adding \"Game\" entity 4... ");
-
-        var private_game = new Game
-        {
-            CompetitionID = 1,
-            Creation = DateTime.Now,
-            Description = string.Concat(Enumerable.Repeat("description ", 85)),
-            ID = 4,
-            MaxGuessCount = 100,
-            Name = "Private Game - Passcode Needed",
-            Passcode = "12345",
-            ScoringRules = rawScoringRules,
-            SubsDeadline = DateTime.Now.AddYears(1),
-            AppUserID = RegularUserId
-        };
-        _context.Game.Add(private_game);
-        Console.WriteLine("Done.");
+            var game = new Game
+            {
+                AppUserID = RegularUserId,
+                CompetitionID = obj.GetProperty("CompetitionID").GetInt32(),
+                Creation = obj.GetProperty("Creation").GetDateTime(),
+                Description = obj.GetProperty("Description").GetString()!,
+                ID = obj.GetProperty("ID").GetInt32(),
+                MaxGuessCount = obj.GetProperty("MaxGuessCount").GetInt32(),
+                Name = obj.GetProperty("Name").GetString()!,
+                Passcode = obj.GetProperty("Passcode").GetString(),
+                ScoringRules = JsonSerializer.Serialize(obj.GetProperty("ScoringRules")),
+                SubsDeadline = obj.GetProperty("SubsDeadline").GetDateTime()
+            };
+            _context.Game.Add(game);
+        }
     }
 
     private void AddGuesses()
     {
-        var scores = new int[] { 3500, 3150, 3100, 3075, 3050 };
-
-        for (int i = 1; i <= 5; i++)
+        var objs = ReadJsonFile("Guesses.json").RootElement;
+        foreach (var obj in objs.EnumerateArray())
         {
-            Console.Write($"Adding \"Guess\" entity {i}... ");
-            var data = ReadJsonFile($"Guess{i}.json");
             var guess = new Guess
             {
-                AuthorName = $"Author Name {i}",
-                Creation = DateTime.Now.AddHours(-i),
-                Data = JsonToString(data),
-                GameID = 1,
-                Number = i,
-                Score = scores[i-1]
+                AuthorName = obj.GetProperty("AuthorName").GetString()!,
+                Creation = DateTime.Now,
+                Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
+                GameID = obj.GetProperty("GameID").GetInt32(),
+                Number = obj.GetProperty("Number").GetInt32(),
+                Score = obj.GetProperty("Score").GetInt32()
             };
             _context.Guess.Add(guess);
-            Console.WriteLine("Done.");
         }
     }
 
@@ -180,40 +117,37 @@ public class DbInitializer
     {
         var manager = _serviceProvider.GetService<UserManager<AppUser>>()!;
         
-        Console.Write("Adding \"AppUser\" entity 1 (Admin)... ");
         var user1 = new AppUser
         {
-            Email="ajquill@gmail.com",
-            EmailConfirmed=true,
-            UserName="ajquill@gmail.com",
-            Id = "admin-user"
+            Email = "ajquill@gmail.com",
+            EmailConfirmed = true,
+            Id = "admin-user",
+            Name = "Admin User",
+            UserName = "ajquill@gmail.com"
         };
         await manager.CreateAsync(user1, StdPass);
         await manager.AddToRoleAsync(user1, RoleReference.Admin);
-        Console.WriteLine("Done.");
 
-        Console.Write("Adding \"AppUser\" entity 2 (Staff)... ");
         var user2 = new AppUser
         {
-            Email="bwillow@gmail.com",
-            EmailConfirmed=true,
-            UserName="bwillow@gmail.com",
-            Id = "staff-user"
+            Email = "bwillow@gmail.com",
+            EmailConfirmed = true,
+            Id = "staff-user",
+            Name = "Staff Member",
+            UserName = "bwillow@gmail.com"
         };
         await manager.CreateAsync(user2, StdPass);
         await manager.AddToRoleAsync(user2, RoleReference.Staff);
-        Console.WriteLine("Done.");
 
-        Console.Write("Adding \"AppUser\" entity 3 (Regular)... ");
         var user3 = new AppUser
         {
-            Email="gfritz@hotmail.com",
-            EmailConfirmed=true,
-            UserName="gfritz@hotmail.com",
-            Id = RegularUserId
+            Email = "gfritz@hotmail.com",
+            EmailConfirmed = true,
+            Id = RegularUserId,
+            Name = RegularUserName,
+            UserName = "gfritz@hotmail.com"
         };
         await manager.CreateAsync(user3, StdPass);
-        Console.WriteLine("Done.");
     }
 
     private async void AddRoles()
@@ -236,10 +170,7 @@ public class DbInitializer
         AddGames();
         AddGuesses();
 
-        Console.Write("Saving changes... ");
         _context.SaveChanges();
-        Console.WriteLine("Done.");
-        
         return;
     }
 }
