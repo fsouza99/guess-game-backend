@@ -45,8 +45,7 @@ namespace App.Controllers
         [HttpGet("Meta")]
         public async Task<ActionResult<int>> GetMetadata(string name = "")
         {
-            var query = Query(name);
-            var count = await query.CountAsync();
+            var count = await Query(name).CountAsync();
             return count;
         }
 
@@ -143,7 +142,7 @@ namespace App.Controllers
             _context.Formula.Add(formula);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetFormula), new { id = formula.ID }, formula);
+            return CreatedAtAction(nameof(GetFormula), new { id = formula.ID }, FormulaView(formula));
         }
 
         // DELETE: api/Formula/5

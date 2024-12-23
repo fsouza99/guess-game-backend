@@ -30,37 +30,36 @@ namespace App.Controllers
         }
 
         private static Object GuessView(Guess guess) => new {
-            AuthorName = guess.AuthorName,
             Creation = guess.Creation,
             Data = JsonDocument.Parse(guess.Data),
             GameID = guess.GameID,
+            Name = guess.Name,
             Number = guess.Number,
             Score = guess.Score
         };
 
-        private IQueryable<Guess> Query(int gameId, string authorName = "")
+        private IQueryable<Guess> Query(int gameId, string name = "")
         {
             var query = _context.Guess
-                .Where(g => EF.Functions.Like(g.AuthorName, $"%{authorName}%"))
-                .Where(g => g.GameID == gameId);
+                .Where(g => g.GameID == gameId)
+                .Where(g => EF.Functions.Like(g.Name, $"%{name}%"));
             return query;
         }
 
         // GET: api/Guess/Meta
         [HttpGet("Meta")]
-        public async Task<ActionResult<int>> GetMetadata(int gameId, string authorName = "")
+        public async Task<ActionResult<int>> GetMetadata(int gameId, string name = "")
         {
-            var query = Query(gameId, authorName);
-            var count = await query.CountAsync();
+            var count = await Query(gameId, name).CountAsync();
             return count;
         }
 
         // GET: api/Guess
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Object>>> GetGuesses(
-            int? offset, int? limit, int gameId, string authorName = "")
+            int? offset, int? limit, int gameId, string name = "")
         {
-            var query = QueryRefiner.Bound(Query(gameId, authorName), offset, limit);
+            var query = QueryRefiner.Bound(Query(gameId, name), offset, limit);
             var result = await query.Select(g => GuessView(g)).ToListAsync();
             return result;
         }
@@ -149,10 +148,10 @@ namespace App.Controllers
             int score = GuessScorer.Evaluate(guessDTO.Data, compData, sRules);
             var guess = new Guess
             {
-                AuthorName = guessDTO.AuthorName,
                 Creation = dateTimeNow,
                 Data = rawGuessData,
                 GameID = guessDTO.GameID,
+                Name = guessDTO.Name,
                 Number = gameGuessCount + 1,
                 Score = score
             };
@@ -160,7 +159,10 @@ namespace App.Controllers
             _context.Guess.Add(guess);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetGuess), new { gameID = guess.GameID, number = guess.Number }, guess);
+            return CreatedAtAction(
+                nameof(GetGuess),
+                new { gameID = guess.GameID, number = guess.Number },
+                GuessView(guess));
         }
 
         // DELETE: api/Guess/5/5

@@ -32,22 +32,21 @@ namespace App.Controllers
             _context = context;
         }
 
-        private static Object GameView(Game game, string? CreatorName) => new {
-            AuthorName = CreatorName,
-            CompetitionID = game.CompetitionID,
-            Creation = game.Creation,
-            Description = game.Description,
-            ID = game.ID,
-            MaxGuessCount = game.MaxGuessCount,
-            Name = game.Name,
-            ScoringRules = JsonDocument.Parse(game.ScoringRules),
-            SubsDeadline = game.SubsDeadline
-        };
-
-        private string? CreatorName(string id)
+        private static Object GameView(Game game, AppDbContext context)
         {
-            var creator = _context.AppUser.Find(id)!;
-            return creator.Name;
+            var creator = context.AppUser.Find(game.AppUserID);
+            return new {
+                CompetitionID = game.CompetitionID,
+                Creator = (creator is null) ? "" : creator.Nickname!,
+                Creation = game.Creation,
+                Description = game.Description,
+                ID = game.ID,
+                MaxGuessCount = game.MaxGuessCount,
+                Name = game.Name,
+                Public = string.IsNullOrEmpty(game.Passcode),
+                ScoringRules = JsonDocument.Parse(game.ScoringRules),
+                SubsDeadline = game.SubsDeadline
+            };
         }
 
         private IQueryable<Game> Query(int? competitionId, string name = "")
@@ -64,8 +63,7 @@ namespace App.Controllers
         [HttpGet("Meta")]
         public async Task<ActionResult<int>> GetMetadata(int? competitionId, string name = "")
         {
-            var query = Query(competitionId, name);
-            var count = await query.CountAsync();
+            var count = await Query(competitionId, name).CountAsync();
             return count;
         }
 
@@ -75,8 +73,7 @@ namespace App.Controllers
             int? offset, int? limit, int? competitionId, string name = "")
         {
             var query = QueryRefiner.Bound(Query(competitionId, name), offset, limit);
-            var result = await query.Select(g => GameView(g, CreatorName(g.AppUserID))
-                ).ToListAsync();
+            var result = await query.Select(g => GameView(g, _context)).ToListAsync();
             return result;
         }
 
@@ -90,7 +87,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            return GameView(game, CreatorName(game.AppUserID));
+            return GameView(game, _context);
         }
 
         // PUT: api/Game/5
@@ -194,7 +191,11 @@ namespace App.Controllers
             _context.Game.Add(game);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetGame), new { id = game.ID }, game);
+            return CreatedAtAction(
+                nameof(GetGame),
+                new { id = game.ID },
+                GameView(game, _context)
+            );
         }
 
         // DELETE: api/Game/5

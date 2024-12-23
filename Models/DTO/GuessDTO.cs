@@ -7,8 +7,8 @@ namespace App.Models
     public class GuessDTO
     {
         [Required]
-        [StringLength(32)]
-        public string AuthorName { get; set; } = default!;
+        [StringLength(16)]
+        public string Name { get; set; } = default!;
                 
         public JsonDocument Data { get; set; } = default!;
         

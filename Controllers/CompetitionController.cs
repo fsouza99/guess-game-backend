@@ -55,8 +55,7 @@ namespace App.Controllers
         public async Task<ActionResult<int>> GetMetadata(
             int? formulaId, string name = "", bool activeOnly = false)
         {
-            var query = Query(formulaId, name, activeOnly);
-            var count = await query.CountAsync();
+            var count = await Query(formulaId, name, activeOnly).CountAsync();
             return count;
         }
 
@@ -188,7 +187,7 @@ namespace App.Controllers
             _context.Competition.Add(competition);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCompetition), new { id = competition.ID }, competition);
+            return CreatedAtAction(nameof(GetCompetition), new { id = competition.ID }, CompetitionView(competition));
         }
 
         // DELETE: api/Competition/5

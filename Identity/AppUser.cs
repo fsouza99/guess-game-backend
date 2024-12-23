@@ -6,7 +6,5 @@ namespace App.Identity.Data;
 
 public class AppUser : IdentityUser
 {
-	[PersonalData]
-	[StringLength(32)]
-	public string? Name { get; set; }
+	public string? Nickname { get; set; }
 }

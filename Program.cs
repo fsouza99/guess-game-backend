@@ -39,7 +39,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
+    // All the following do not equal their defaults.
     options.User.RequireUniqueEmail = true;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireNonAlphanumeric = false;
 });
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -74,6 +77,53 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapIdentityApi<AppUser>();
+
+// Extra Identity endpoint, for a user to set his nickname.
+app.MapPost(
+    "/manage/nickname",
+    async (
+        ClaimsPrincipal claimsPrincipal,
+        UserManager<AppUser> userManager,
+        [FromBody] string nickname) =>
+    {
+        var user = await userManager.GetUserAsync(claimsPrincipal);
+        if (user is null)
+        {
+            return Results.NotFound();
+        }
+        
+        user.Nickname = nickname;
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return Results.BadRequest();
+        }
+        
+        return Results.Ok();
+    }
+).WithOpenApi().RequireAuthorization();
+
+// Extra Identity endpoint, for a user to retrieve all his profile data.
+app.MapGet(
+    "/manage/profile",
+    async (
+        ClaimsPrincipal claimsPrincipal,
+        UserManager<AppUser> userManager) =>
+    {
+        var user = await userManager.GetUserAsync(claimsPrincipal);
+        if (user is null)
+        {
+            return Results.NotFound();
+        }
+        var profile = new
+        {
+            Nickname = user.Nickname,
+            Email = user.Email
+        };
+
+        return Results.Ok(profile);
+    }
+).WithOpenApi().RequireAuthorization();
 
 // Extra Identity endpoint, for a user to log out from his account.
 app.MapPost(

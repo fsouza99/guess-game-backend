@@ -18,7 +18,6 @@ public class DbInitializer
 
     // The regular user to be added.
     private const string RegularUserId = "regular-user-1";
-    private const string RegularUserName = "Regular User";
 
     // Reads JSON file and returns its content appropriately.
     private JsonDocument ReadJsonFile(string file)
@@ -102,10 +101,10 @@ public class DbInitializer
         {
             var guess = new Guess
             {
-                AuthorName = obj.GetProperty("AuthorName").GetString()!,
                 Creation = DateTime.Now,
                 Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
                 GameID = obj.GetProperty("GameID").GetInt32(),
+                Name = obj.GetProperty("Name").GetString()!,
                 Number = obj.GetProperty("Number").GetInt32(),
                 Score = obj.GetProperty("Score").GetInt32()
             };
@@ -120,9 +119,9 @@ public class DbInitializer
         var user1 = new AppUser
         {
             Email = "ajquill@gmail.com",
-            EmailConfirmed = true,
+            EmailConfirmed = false,
             Id = "admin-user",
-            Name = "Admin User",
+            Nickname = "AJQuill",
             UserName = "ajquill@gmail.com"
         };
         await manager.CreateAsync(user1, StdPass);
@@ -131,9 +130,9 @@ public class DbInitializer
         var user2 = new AppUser
         {
             Email = "bwillow@gmail.com",
-            EmailConfirmed = true,
+            EmailConfirmed = false,
             Id = "staff-user",
-            Name = "Staff Member",
+            Nickname = "BWillow",
             UserName = "bwillow@gmail.com"
         };
         await manager.CreateAsync(user2, StdPass);
@@ -142,9 +141,9 @@ public class DbInitializer
         var user3 = new AppUser
         {
             Email = "gfritz@hotmail.com",
-            EmailConfirmed = true,
+            EmailConfirmed = false,
             Id = RegularUserId,
-            Name = RegularUserName,
+            Nickname = "GFritz",
             UserName = "gfritz@hotmail.com"
         };
         await manager.CreateAsync(user3, StdPass);
@@ -153,7 +152,7 @@ public class DbInitializer
     private async void AddRoles()
     {
         var manager = _serviceProvider.GetService<RoleManager<IdentityRole>>()!;
-        var roles = new string[] {RoleReference.Admin, RoleReference.Staff};
+        var roles = new string[] { RoleReference.Admin, RoleReference.Staff };
         foreach (var role in roles)
         {
             await manager.CreateAsync(new IdentityRole(role));
