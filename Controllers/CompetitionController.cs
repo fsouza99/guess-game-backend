@@ -112,13 +112,14 @@ namespace App.Controllers
                 // Update.
                 competition.Data = rawData;
 
-                // Guesses must be reassessed.
+                // Games and guesses must be reassessed.
                 var games = _context.Game
                     .Where(g => g.CompetitionID == id)
                     .Include(g => g.Guesses);
                 foreach (var game in games)
                 {
                     var gameSRules = JsonDocument.Parse(game.ScoringRules);
+                    game.MaxScore = GuessScorer.Evaluate(competitionDTO.Data, competitionDTO.Data, gameSRules);
                     foreach (var guess in game.Guesses)
                     {
                         var guessData = JsonDocument.Parse(guess.Data);

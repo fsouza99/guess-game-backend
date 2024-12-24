@@ -77,6 +77,7 @@ public class DbInitializer
         var objs = ReadJsonFile("Games.json").RootElement;
         foreach (var obj in objs.EnumerateArray())
         {
+            var deadline = obj.GetProperty("SubsDeadline");
             var game = new Game
             {
                 AppUserID = RegularUserId,
@@ -84,11 +85,12 @@ public class DbInitializer
                 Creation = obj.GetProperty("Creation").GetDateTime(),
                 Description = obj.GetProperty("Description").GetString()!,
                 ID = obj.GetProperty("ID").GetInt32(),
+                MaxScore = obj.GetProperty("MaxScore").GetInt32(),
                 MaxGuessCount = obj.GetProperty("MaxGuessCount").GetInt32(),
                 Name = obj.GetProperty("Name").GetString()!,
                 Passcode = obj.GetProperty("Passcode").GetString(),
                 ScoringRules = JsonSerializer.Serialize(obj.GetProperty("ScoringRules")),
-                SubsDeadline = obj.GetProperty("SubsDeadline").GetDateTime()
+                SubsDeadline = (deadline.ValueKind == JsonValueKind.Null) ? null : deadline.GetDateTime()
             };
             _context.Game.Add(game);
         }

@@ -21,6 +21,9 @@ namespace App.Models
         
         [Range(1, 100)]
         public int MaxGuessCount { get; set; }
+
+        [Comment("The maximum possible score of a guess targeting this game.")]
+        public int MaxScore { get; set; }
         
         [Required]
         [StringLength(32)]

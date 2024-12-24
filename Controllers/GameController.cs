@@ -42,6 +42,7 @@ namespace App.Controllers
                 Description = game.Description,
                 ID = game.ID,
                 MaxGuessCount = game.MaxGuessCount,
+                MaxScore = game.MaxScore,
                 Name = game.Name,
                 Public = string.IsNullOrEmpty(game.Passcode),
                 ScoringRules = JsonDocument.Parse(game.ScoringRules),
@@ -49,30 +50,35 @@ namespace App.Controllers
             };
         }
 
-        private IQueryable<Game> Query(int? competitionId, string name = "")
+        private IQueryable<Game> Query(int? competitionId, string name = "", bool publicOnly = false)
         {
             var query = _context.Game.Where(g => EF.Functions.Like(g.Name, $"%{name}%"));
             if (competitionId is not null)
             {
                 query = query.Where(g => g.CompetitionID == competitionId);
             }
+            if (publicOnly)
+            {
+                query = query.Where(g => string.IsNullOrEmpty(g.Passcode));
+            }
             return query;
         }
 
         // GET: api/Game/Meta
         [HttpGet("Meta")]
-        public async Task<ActionResult<int>> GetMetadata(int? competitionId, string name = "")
+        public async Task<ActionResult<int>> GetMetadata(
+            int? competitionId, string name = "", bool publicOnly = false)
         {
-            var count = await Query(competitionId, name).CountAsync();
+            var count = await Query(competitionId, name, publicOnly).CountAsync();
             return count;
         }
 
         // GET: api/Game
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Object>>> GetGames(
-            int? offset, int? limit, int? competitionId, string name = "")
+            int? offset, int? limit, int? competitionId, string name = "", bool publicOnly = false)
         {
-            var query = QueryRefiner.Bound(Query(competitionId, name), offset, limit);
+            var query = QueryRefiner.Bound(Query(competitionId, name, publicOnly), offset, limit);
             var result = await query.Select(g => GameView(g, _context)).ToListAsync();
             return result;
         }
@@ -173,6 +179,8 @@ namespace App.Controllers
             }
 
             // Creation.
+            var compData = JsonDocument.Parse(competition.Data);
+            int maxScore = GuessScorer.Evaluate(compData, compData, gameDTO.ScoringRules);
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             string rawSRules = JsonSerializer.Serialize(gameDTO.ScoringRules.RootElement);
             var game = new Game
@@ -181,6 +189,7 @@ namespace App.Controllers
                 CompetitionID = gameDTO.CompetitionID,
                 Creation = DateTime.Now,
                 Description = gameDTO.Description,
+                MaxScore = maxScore,
                 MaxGuessCount = gameDTO.MaxGuessCount,
                 Name = gameDTO.Name,
                 Passcode = gameDTO.Passcode,
