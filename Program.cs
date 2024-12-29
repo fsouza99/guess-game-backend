@@ -103,6 +103,33 @@ app.MapPost(
     }
 ).WithOpenApi().RequireAuthorization();
 
+// Extra Identity endpoint, for a user to set his email and have the username updated too.
+app.MapPost(
+    "/manage/email",
+    async (
+        ClaimsPrincipal claimsPrincipal,
+        UserManager<AppUser> userManager,
+        [FromBody] string email) =>
+    {
+        var user = await userManager.GetUserAsync(claimsPrincipal);
+        if (user is null)
+        {
+            return Results.NotFound();
+        }
+        
+        user.Email = email;
+        user.UserName = email; // This is necessary to allow user to login using email.
+        
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return Results.BadRequest();
+        }
+        
+        return Results.Ok();
+    }
+).WithOpenApi().RequireAuthorization();
+
 // Extra Identity endpoint, for a user to retrieve all his profile data.
 app.MapGet(
     "/manage/profile",
