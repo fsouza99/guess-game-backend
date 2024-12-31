@@ -3,12 +3,11 @@ using App.Authorization.References;
 using App.Controllers;
 using App.Data;
 using App.Identity.Data;
+using App.Identity.Endpoints;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,124 +77,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapIdentityApi<AppUser>();
 
-// Extra Identity endpoint, for a user to set his nickname.
-app.MapPost(
-    "/manage/nickname",
-    async (
-        ClaimsPrincipal claimsPrincipal,
-        UserManager<AppUser> userManager,
-        [FromBody] string nickname) =>
-    {
-        var user = await userManager.GetUserAsync(claimsPrincipal);
-        if (user is null)
-        {
-            return Results.NotFound();
-        }
-        
-        user.Nickname = nickname;
-        var result = await userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            return Results.BadRequest();
-        }
-        
-        return Results.Ok();
-    }
-).WithOpenApi().RequireAuthorization();
-
-// Extra Identity endpoint, for a user to set his email and have the username updated too.
-app.MapPost(
-    "/manage/email",
-    async (
-        ClaimsPrincipal claimsPrincipal,
-        UserManager<AppUser> userManager,
-        [FromBody] string email) =>
-    {
-        var user = await userManager.GetUserAsync(claimsPrincipal);
-        if (user is null)
-        {
-            return Results.NotFound();
-        }
-        
-        user.Email = email;
-        user.UserName = email; // This is necessary to allow user to login using email.
-        
-        var result = await userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            return Results.BadRequest();
-        }
-        
-        return Results.Ok();
-    }
-).WithOpenApi().RequireAuthorization();
-
-// Extra Identity endpoint, for a user to retrieve all his profile data.
-app.MapGet(
-    "/manage/profile",
-    async (
-        ClaimsPrincipal claimsPrincipal,
-        UserManager<AppUser> userManager) =>
-    {
-        var user = await userManager.GetUserAsync(claimsPrincipal);
-        if (user is null)
-        {
-            return Results.NotFound();
-        }
-        var profile = new
-        {
-            Nickname = user.Nickname,
-            Email = user.Email
-        };
-
-        return Results.Ok(profile);
-    }
-).WithOpenApi().RequireAuthorization();
-
-// Extra Identity endpoint, for a user to log out from his account.
-app.MapPost(
-    "/logout",
-    async (
-        SignInManager<AppUser> signInManager,
-        [FromBody] object empty) =>
-    {
-        if (empty is null)
-        {
-            return Results.Unauthorized();
-        }
-        await signInManager.SignOutAsync();
-        return Results.Ok();
-    }
-).WithOpenApi().RequireAuthorization();
-
-// Extra Identity endpoint, for a user to delete his own account.
-app.MapDelete(
-    "/delete",
-    async (
-        ClaimsPrincipal claimsPrincipal,
-        SignInManager<AppUser> signInManager,
-        UserManager<AppUser> userManager,
-        [FromBody] object empty) =>
-    {
-        if (empty is null)
-        {
-            return Results.Unauthorized();
-        }
-        var user = await userManager.GetUserAsync(claimsPrincipal);
-        if (user is null)
-        {
-            return Results.NotFound();
-        }
-        var result = await userManager.DeleteAsync(user);
-        if (result.Succeeded)
-        {
-            // Necessary to make any new logout requests fail.
-            await signInManager.SignOutAsync();
-
-            return Results.NoContent();
-        }
-        return Results.BadRequest();
-    }
-).WithOpenApi().RequireAuthorization();
+CustomEndpoints.MapExtraIdentityEndpoints(app);
 
 app.Run();

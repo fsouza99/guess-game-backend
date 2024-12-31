@@ -167,6 +167,16 @@ namespace App.Controllers
                 return Conflict(MessageRepo.InactiveResource);
             }
 
+            // Submission deadline must be at least 5 min in future.
+            var dateTimeNow = DateTime.Now;
+            if (gameDTO.SubsDeadline is not null)
+            {
+                if (gameDTO.SubsDeadline < dateTimeNow.AddMinutes(5))
+                {
+                    return BadRequest(MessageRepo.TooEarlySubsDeadline);
+                }
+            }
+
             // "ScoringRules" must be in accordance to template.
             string rawSRulesTemp = _context.Formula
                 .Where(f => f.ID == competition.FormulaID)
@@ -187,7 +197,7 @@ namespace App.Controllers
             {
                 AppUserID = userId,
                 CompetitionID = gameDTO.CompetitionID,
-                Creation = DateTime.Now,
+                Creation = dateTimeNow,
                 Description = gameDTO.Description,
                 MaxScore = maxScore,
                 MaxGuessCount = gameDTO.MaxGuessCount,
