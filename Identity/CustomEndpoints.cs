@@ -81,6 +81,7 @@ public static class CustomEndpoints
                 }
                 var profile = new
                 {
+                    ID = user.Id,
                     Nickname = user.Nickname,
                     Email = user.Email
                 };

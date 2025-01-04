@@ -35,10 +35,12 @@ namespace App.Controllers
         private static Object GameView(Game game, AppDbContext context)
         {
             var creator = context.AppUser.Find(game.AppUserID);
-            return new {
+            return new
+            {
                 CompetitionID = game.CompetitionID,
-                Creator = (creator is null) ? "" : creator.Nickname!,
                 Creation = game.Creation,
+                CreatorID = game.AppUserID,
+                CreatorNick = (creator is null) ? "" : creator.Nickname!,
                 Description = game.Description,
                 ID = game.ID,
                 MaxGuessCount = game.MaxGuessCount,
@@ -50,12 +52,17 @@ namespace App.Controllers
             };
         }
 
-        private IQueryable<Game> Query(int? competitionId, string name = "", bool publicOnly = false)
+        private IQueryable<Game> Query(
+            int? competitionId, string? appUserId, string name = "", bool publicOnly = false)
         {
             var query = _context.Game.Where(g => EF.Functions.Like(g.Name, $"%{name}%"));
             if (competitionId is not null)
             {
                 query = query.Where(g => g.CompetitionID == competitionId);
+            }
+            if (appUserId is not null)
+            {
+                query = query.Where(g => g.AppUserID == appUserId);
             }
             if (publicOnly)
             {
@@ -67,18 +74,20 @@ namespace App.Controllers
         // GET: api/Game/Meta
         [HttpGet("Meta")]
         public async Task<ActionResult<int>> GetMetadata(
-            int? competitionId, string name = "", bool publicOnly = false)
+            int? competitionId, string? appUserId, string name = "", bool publicOnly = false)
         {
-            var count = await Query(competitionId, name, publicOnly).CountAsync();
+            var count = await Query(
+                competitionId, appUserId, name, publicOnly).CountAsync();
             return count;
         }
 
         // GET: api/Game
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Object>>> GetGames(
-            int? offset, int? limit, int? competitionId, string name = "", bool publicOnly = false)
+            int? offset, int? limit, int? competitionId, string? appUserId, string name = "", bool publicOnly = false)
         {
-            var query = QueryRefiner.Bound(Query(competitionId, name, publicOnly), offset, limit);
+            var query = QueryRefiner.Bound(
+                Query(competitionId, appUserId, name, publicOnly), offset, limit);
             var result = await query.Select(g => GameView(g, _context)).ToListAsync();
             return result;
         }
@@ -119,6 +128,16 @@ namespace App.Controllers
             if (!authorization.Succeeded)
             {
                 return Forbid();
+            }
+
+            // Submission deadline must be at least 5 min in future.
+            var dateTimeNow = DateTime.Now;
+            if (gameDTO.SubsDeadline is not null)
+            {
+                if (gameDTO.SubsDeadline < dateTimeNow.AddMinutes(5))
+                {
+                    return BadRequest(MessageRepo.TooEarlySubsDeadline);
+                }
             }
 
             // Available updates.

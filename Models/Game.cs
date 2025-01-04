@@ -22,7 +22,7 @@ namespace App.Models
         [Range(1, 100)]
         public int MaxGuessCount { get; set; }
 
-        [Comment("The maximum possible score of a guess targeting this game.")]
+        [Comment("The maximum possible score of a guess on this game.")]
         public int MaxScore { get; set; }
         
         [Required]
@@ -30,14 +30,14 @@ namespace App.Models
         public string Name { get; set; } = default!;
 
         [StringLength(8)]
-        [Comment("A passcode might be necessary to enter the competition.")]
+        [Comment("A passcode might be necessary to enter the game.")]
         public string? Passcode { get; set; }
 
         [Required]
         [Comment("Scoring rules as a JSON string.")]
         public string ScoringRules { get; set; } = default!; // JSON
         
-        [Comment("People can enter the competition until this datetime.")]
+        [Comment("If set, new guesses will be accepted until this datetime.")]
         public DateTime? SubsDeadline { get; set; }
 
         // Navigation
