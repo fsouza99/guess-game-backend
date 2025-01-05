@@ -84,7 +84,7 @@ public class DbInitializer
                 CompetitionID = obj.GetProperty("CompetitionID").GetInt32(),
                 Creation = obj.GetProperty("Creation").GetDateTime(),
                 Description = obj.GetProperty("Description").GetString()!,
-                ID = obj.GetProperty("ID").GetInt32(),
+                ID = obj.GetProperty("ID").GetString()!,
                 MaxScore = obj.GetProperty("MaxScore").GetInt32(),
                 MaxGuessCount = obj.GetProperty("MaxGuessCount").GetInt32(),
                 Name = obj.GetProperty("Name").GetString()!,
@@ -105,7 +105,7 @@ public class DbInitializer
             {
                 Creation = DateTime.Now,
                 Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
-                GameID = obj.GetProperty("GameID").GetInt32(),
+                GameID = obj.GetProperty("GameID").GetString()!,
                 Name = obj.GetProperty("Name").GetString()!,
                 Number = obj.GetProperty("Number").GetInt32(),
                 Score = obj.GetProperty("Score").GetInt32()

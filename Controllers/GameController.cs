@@ -94,7 +94,7 @@ namespace App.Controllers
 
         // GET: api/Game/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Object>> GetGame(int id)
+        public async Task<ActionResult<Object>> GetGame(string id)
         {
             var game = await _context.Game.FindAsync(id);
             if (game is null)
@@ -107,7 +107,7 @@ namespace App.Controllers
 
         // PUT: api/Game/5
         [HttpPut("{id}"), Authorize]
-        public async Task<IActionResult> PutGame(int id, GameDTO gameDTO)
+        public async Task<IActionResult> PutGame(string id, GameDTO gameDTO)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -218,6 +218,7 @@ namespace App.Controllers
                 CompetitionID = gameDTO.CompetitionID,
                 Creation = dateTimeNow,
                 Description = gameDTO.Description,
+                ID = DataGen.GenerateID(),
                 MaxScore = maxScore,
                 MaxGuessCount = gameDTO.MaxGuessCount,
                 Name = gameDTO.Name,
@@ -228,7 +229,6 @@ namespace App.Controllers
 
             _context.Game.Add(game);
             await _context.SaveChangesAsync();
-
             return CreatedAtAction(
                 nameof(GetGame),
                 new { id = game.ID },
@@ -238,7 +238,7 @@ namespace App.Controllers
 
         // DELETE: api/Game/5
         [HttpDelete("{id}"), Authorize]
-        public async Task<IActionResult> DeleteGame(int id)
+        public async Task<IActionResult> DeleteGame(string id)
         {
             var game = await _context.Game.FindAsync(id);
             if (game is null)
@@ -260,7 +260,7 @@ namespace App.Controllers
             return NoContent();
         }
 
-        private bool GameExists(int id)
+        private bool GameExists(string id)
         {
             return _context.Game.Any(e => e.ID == id);
         }

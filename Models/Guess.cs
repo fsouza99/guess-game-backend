@@ -6,17 +6,19 @@ namespace App.Models
     [PrimaryKey(nameof(GameID), nameof(Number))]
     public class Guess
     {
-        [Required]
-        [StringLength(16)]
-        public string Name { get; set; } = default!;
-        
         public DateTime Creation { get; set; }
-
+        
         [Required]
         [Comment("Content of the guess as a JSON string.")]
         public string Data { get; set; } = default!; // JSON    
+
+        [Required]
+        [StringLength(11)]
+        public string GameID { get; set; } = default!; // FK/PK1
         
-        public int GameID { get; set; } // FK/PK1
+        [Required]
+        [StringLength(16)]
+        public string Name { get; set; } = default!;
 
         public int Number { get; set; } // PK2
 

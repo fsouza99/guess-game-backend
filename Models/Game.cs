@@ -17,7 +17,9 @@ namespace App.Models
         [StringLength(1024)]
         public string Description { get; set; } = default!;
         
-        public int ID { get; set; } // PK
+        [Required]
+        [StringLength(11)]
+        public string ID { get; set; } = default!; // PK
         
         [Range(1, 100)]
         public int MaxGuessCount { get; set; }

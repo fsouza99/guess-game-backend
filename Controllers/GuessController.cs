@@ -38,7 +38,7 @@ namespace App.Controllers
             Score = guess.Score
         };
 
-        private IQueryable<Guess> Query(int gameId, string name = "")
+        private IQueryable<Guess> Query(string gameId, string name = "")
         {
             var query = _context.Guess
                 .Where(g => g.GameID == gameId)
@@ -48,7 +48,7 @@ namespace App.Controllers
 
         // GET: api/Guess/Meta
         [HttpGet("Meta")]
-        public async Task<ActionResult<int>> GetMetadata(int gameId, string name = "")
+        public async Task<ActionResult<int>> GetMetadata(string gameId, string name = "")
         {
             var count = await Query(gameId, name).CountAsync();
             return count;
@@ -57,7 +57,7 @@ namespace App.Controllers
         // GET: api/Guess
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Object>>> GetGuesses(
-            int? offset, int? limit, int gameId, string name = "")
+            int? offset, int? limit, string gameId, string name = "")
         {
             var query = QueryRefiner.Bound(Query(gameId, name), offset, limit);
             var result = await query.Select(g => GuessView(g)).ToListAsync();
@@ -66,7 +66,7 @@ namespace App.Controllers
 
         // GET: api/Guess/5/5
         [HttpGet("{gameId}/{number}")]
-        public async Task<ActionResult<Object>> GetGuess(int gameId, int number)
+        public async Task<ActionResult<Object>> GetGuess(string gameId, int number)
         {
             var guess = await _context.Guess.FindAsync(gameId, number);
             if (guess is null)
@@ -167,7 +167,7 @@ namespace App.Controllers
 
         // DELETE: api/Guess/5/5
         [HttpDelete("{gameId}/{number}"), Authorize]
-        public async Task<ActionResult> DeleteGuess(int gameId, int number)
+        public async Task<ActionResult> DeleteGuess(string gameId, int number)
         {
             // Guess check.
             var guess = _context.Guess

@@ -12,7 +12,9 @@ namespace App.Models
                 
         public JsonDocument Data { get; set; } = default!;
         
-        public int GameID { get; set; }
+        [Required]
+        [StringLength(11)]
+        public string GameID { get; set; } = default!;
 
         [StringLength(8)]
         public string? GamePasscode { get; set; }
