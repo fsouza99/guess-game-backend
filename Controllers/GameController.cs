@@ -46,7 +46,7 @@ namespace App.Controllers
                 MaxGuessCount = game.MaxGuessCount,
                 MaxScore = game.MaxScore,
                 Name = game.Name,
-                Public = string.IsNullOrEmpty(game.Passcode),
+                Passcode = game.Passcode,
                 ScoringRules = JsonDocument.Parse(game.ScoringRules),
                 SubsDeadline = game.SubsDeadline
             };
@@ -130,11 +130,12 @@ namespace App.Controllers
                 return Forbid();
             }
 
-            // Submission deadline must be at least 5 min in future.
+            // If new, submission deadline must be either "null" or at least 5 min in future.
             var dateTimeNow = DateTime.Now;
-            if (gameDTO.SubsDeadline is not null)
+            if (gameDTO.SubsDeadline != game.SubsDeadline)
             {
-                if (gameDTO.SubsDeadline < dateTimeNow.AddMinutes(5))
+                if (gameDTO.SubsDeadline is not null &&
+                    gameDTO.SubsDeadline < dateTimeNow.AddMinutes(5))
                 {
                     return BadRequest(MessageRepo.TooEarlySubsDeadline);
                 }

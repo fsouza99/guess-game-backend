@@ -109,7 +109,7 @@ namespace App.Controllers
             {
                 if (dateTimeNow > game.SubsDeadline)
                 {
-                    return Conflict(MessageRepo.DeadlineReached);
+                    return Conflict(MessageRepo.SubsDeadlineReached);
                 }
             }
 
@@ -119,7 +119,7 @@ namespace App.Controllers
                 .Count();
             if (gameGuessCount >= game.MaxGuessCount)
             {
-                return Conflict(MessageRepo.MaxObjCountReached);
+                return Conflict(MessageRepo.MaxGuessCountReached);
             }
 
             // "Data" must be in accordance to template.
