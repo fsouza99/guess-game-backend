@@ -4,6 +4,7 @@ using App.Controllers;
 using App.Data;
 using App.Identity.Data;
 using App.Identity.Endpoints;
+using App.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +22,6 @@ builder.Services.AddAuthorization(options =>
             policy.RequireRole(RoleReference.Admin));
     });
 
-builder.Services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
-
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -35,6 +34,12 @@ builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
+
+builder.Services.AddSingleton<IMessagingService>(await MessagingServiceFactory.Create(builder.Configuration["Messaging:Host"]!));
+
+builder.Services.AddSingleton<IEmailService, EmailService>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -66,7 +71,7 @@ using (var scope = app.Services.CreateScope())
     if (!context.Formula.Any())
     {
         var dbinit = new DbInitializer(services, context);
-        dbinit.Initialize();
+        await dbinit.Initialize();
     }
 }
 
@@ -76,7 +81,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapIdentityApi<AppUser>();
-
-CustomEndpoints.MapExtraIdentityEndpoints(app);
+app.MapExtraIdentityEndpoints();
 
 app.Run();

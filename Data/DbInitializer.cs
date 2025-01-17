@@ -114,7 +114,7 @@ public class DbInitializer
         }
     }
 
-    private async void AddAppUsers()
+    private async Task AddAppUsersAsync()
     {
         var manager = _serviceProvider.GetService<UserManager<AppUser>>()!;
         
@@ -151,7 +151,7 @@ public class DbInitializer
         await manager.CreateAsync(user3, StdPass);
     }
 
-    private async void AddRoles()
+    private async Task AddRolesAsync()
     {
         var manager = _serviceProvider.GetService<RoleManager<IdentityRole>>()!;
         var roles = new string[] { RoleReference.Admin, RoleReference.Staff };
@@ -161,11 +161,11 @@ public class DbInitializer
         }
     }
 
-    public void Initialize()
+    public async Task Initialize()
     {
         // Data must be added in some order that respects FK constraints.
-        AddRoles();
-        AddAppUsers();
+        await AddRolesAsync();
+        await AddAppUsersAsync();
         AddFormulas();
         AddCompetitions();
         AddGames();

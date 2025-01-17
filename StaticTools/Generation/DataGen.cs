@@ -5,9 +5,10 @@ public static class DataGen
 	public static string GenerateID()
 	{
 		const string alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		var buffer = new char[11];
+		const int size = 11;
+		var buffer = new char[size];
 		var dice = new Random();
-		for (int i = 0; i < 11; i++)
+		for (int i = 0; i < size; i++)
 		{
 			buffer[i] = alphanum[dice.Next(62)];
 		}

@@ -9,7 +9,7 @@ namespace App.Identity.Endpoints;
 public static class CustomEndpoints
 {
     // Adds extra endpoints to Identity, addressing particular needs in account management.
-    public static void MapExtraIdentityEndpoints(WebApplication app)
+    public static void MapExtraIdentityEndpoints(this WebApplication app)
     {
         // Allows the user to set his nickname.
         app.MapPost(
