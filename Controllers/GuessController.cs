@@ -79,7 +79,7 @@ namespace App.Controllers
 
         // POST: api/Guess
         [HttpPost]
-        public async Task<ActionResult<Guess>> PostGuess(GuessDTO guessDTO)
+        public async Task<ActionResult<Guess>> PostGuess(GuessDto guessDto)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -88,70 +88,66 @@ namespace App.Controllers
             }
 
             // Check game.
-            var game = await _context.Game.FindAsync(guessDTO.GameID);
+            var game = await _context.Game.FindAsync(guessDto.GameID);
             if (game is null)
             {
                 return NotFound();
             }
 
             // Check passcode.
-            if (!string.IsNullOrEmpty(game.Passcode))
+            if (!string.IsNullOrEmpty(game.Passcode) &&
+                guessDto.GamePasscode != game.Passcode)
             {
-                if (guessDTO.GamePasscode != game.Passcode)
-                {
-                    return Unauthorized(MessageRepo.PasscodeError);
-                }
+                return Unauthorized(MessageRepo.PasscodeError);
             }
 
             // Check deadline.
             var dateTimeNow = DateTime.Now;
-            if (game.SubsDeadline is not null)
+            if (game.SubsDeadline is not null &&
+                dateTimeNow > game.SubsDeadline)
             {
-                if (dateTimeNow > game.SubsDeadline)
-                {
-                    return Conflict(MessageRepo.SubsDeadlineReached);
-                }
+                return Conflict(MessageRepo.SubsDeadlineReached);
             }
 
             // Check guess count.
-            int gameGuessCount = _context.Guess
+            int gameGuessCount = await _context.Guess
                 .Where(g => g.GameID == game.ID)
-                .Count();
+                .CountAsync();
             if (gameGuessCount >= game.MaxGuessCount)
             {
                 return Conflict(MessageRepo.MaxGuessCountReached);
             }
 
-            // "Data" must be in accordance to template.
-            int formulaId = _context.Competition
+            // Check "Data" in accordance to template.
+            int formulaId = await _context.Competition
                 .Where(c => c.ID == game.CompetitionID)
                 .Select(c => c.FormulaID)
-                .First();
-            string rawDataTemp = _context.Formula
+                .FirstAsync();
+            string rawDataTemp = await _context.Formula
                 .Where(f => f.ID == formulaId)
                 .Select(f => f.DataTemplate)
-                .First();
+                .FirstAsync();
             var dataTemp = JsonDocument.Parse(rawDataTemp);
-            if (!JsonDataChecker.DataOnTemplate(dataTemp, guessDTO.Data))
+            if (!JsonDataChecker.DataOnTemplate(dataTemp, guessDto.Data))
             {
                 return BadRequest(MessageRepo.UnfitData);
             }
 
             // Creation.
-            string rawCompData = _context.Competition
+            string rawCompData = await _context.Competition
                 .Where(c => c.ID == game.CompetitionID)
                 .Select(c => c.Data)
-                .First();
-            string rawGuessData = JsonSerializer.Serialize(guessDTO.Data.RootElement);
+                .FirstAsync();
+            string rawGuessData = JsonSerializer.Serialize(guessDto.Data.RootElement);
             var compData = JsonDocument.Parse(rawCompData);
             var sRules = JsonDocument.Parse(game.ScoringRules);
-            int score = GuessScorer.Evaluate(guessDTO.Data, compData, sRules);
+            int score = GuessScorer.Evaluate(guessDto.Data, compData, sRules);
             var guess = new Guess
             {
                 Creation = dateTimeNow,
                 Data = rawGuessData,
-                GameID = guessDTO.GameID,
-                Name = guessDTO.Name,
+                GameID = guessDto.GameID,
+                Name = guessDto.Name,
                 Number = gameGuessCount + 1,
                 Score = score
             };
@@ -170,9 +166,9 @@ namespace App.Controllers
         public async Task<ActionResult> DeleteGuess(string gameId, int number)
         {
             // Guess check.
-            var guess = _context.Guess
+            var guess = await _context.Guess
                 .Where(g => g.GameID == gameId && g.Number == number)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
             if (guess is null)
             {
                 return NotFound();

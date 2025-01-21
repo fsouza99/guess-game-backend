@@ -87,12 +87,13 @@ public static class JsonDataChecker
 		}
 
 		// Every data property must exist in template.
-		foreach (JsonProperty property in templateProperties)
+		var propNames = templateProperties.Select(p => p.Name);
+		foreach (string propName in propNames)
 		{
-			JsonElement templateElement = templateRoot.GetProperty(property.Name), dataElement;
+			JsonElement templateElement = templateRoot.GetProperty(propName), dataElement;
 			try
 			{
-				dataElement = dataRoot.GetProperty(property.Name);
+				dataElement = dataRoot.GetProperty(propName);
 			}
 			catch (KeyNotFoundException)
 			{
@@ -124,15 +125,14 @@ public static class JsonDataChecker
 
 		// Template must contain at least 1 element.
 		var templateProperties = templateRoot.EnumerateObject();
-		if (templateProperties.Count() == 0)
+		if (!templateProperties.Any())
 		{
 			return false;
 		}
 
-		foreach (JsonProperty property in templateProperties)
+		var valueElements = templateProperties.Select(p => p.Value);
+		foreach (JsonElement element in valueElements)
 		{
-			JsonElement element = property.Value;
-
 			// A property cannot be of type "null", "object" nor "undefined".
 			if (IsNullObjUndef(element))
 			{
@@ -174,15 +174,15 @@ public static class JsonDataChecker
 
 		// Template must contain at least 1 element.
 		var templateProperties = templateRoot.EnumerateObject();
-		if (templateProperties.Count() == 0)
+		if (!templateProperties.Any())
 		{
 			return false;
 		}
 
 		// An element must be an integer in [0, 1000].
-		foreach (JsonProperty property in templateProperties)
+		var valueElements = templateProperties.Select(p => p.Value);
+		foreach (JsonElement element in valueElements)
 		{
-			JsonElement element = property.Value;
 			if (!IsLimitedInt32(element, 0, 1000))
 			{
 				return false;
@@ -217,12 +217,13 @@ public static class JsonDataChecker
 		}
 
 		// Every data property must exist in template.
-		foreach (JsonProperty property in templateProperties)
+		var propNames = templateProperties.Select(p => p.Name);
+		foreach (string propName in propNames)
 		{
-			JsonElement templateElement = templateRoot.GetProperty(property.Name), dataElement;
+			JsonElement dataElement;
 			try
 			{
-				dataElement = dataRoot.GetProperty(property.Name);
+				dataElement = dataRoot.GetProperty(propName);
 			}
 			catch (KeyNotFoundException)
 			{

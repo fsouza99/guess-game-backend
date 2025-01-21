@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace App.Models
 {
-    public class GameDTO
+    public class GameDto
     {
         public int CompetitionID { get; set; } // FK
 

@@ -107,7 +107,7 @@ namespace App.Controllers
 
         // PUT: api/Game/5
         [HttpPut("{id}"), Authorize]
-        public async Task<IActionResult> PutGame(string id, GameDTO gameDTO)
+        public async Task<IActionResult> PutGame(string id, GameDto gameDto)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -132,21 +132,19 @@ namespace App.Controllers
 
             // If new, submission deadline must be either "null" or at least 5 min in future.
             var dateTimeNow = DateTime.Now;
-            if (gameDTO.SubsDeadline != game.SubsDeadline)
+            if (gameDto.SubsDeadline != game.SubsDeadline &&
+                gameDto.SubsDeadline is not null &&
+                gameDto.SubsDeadline < dateTimeNow.AddMinutes(5))
             {
-                if (gameDTO.SubsDeadline is not null &&
-                    gameDTO.SubsDeadline < dateTimeNow.AddMinutes(5))
-                {
-                    return BadRequest(MessageRepo.TooEarlySubsDeadline);
-                }
+                return BadRequest(MessageRepo.TooEarlySubsDeadline);
             }
 
             // Available updates.
-            game.Description = gameDTO.Description;
-            game.MaxGuessCount = gameDTO.MaxGuessCount;
-            game.Name = gameDTO.Name;
-            game.Passcode = gameDTO.Passcode;
-            game.SubsDeadline = gameDTO.SubsDeadline;
+            game.Description = gameDto.Description;
+            game.MaxGuessCount = gameDto.MaxGuessCount;
+            game.Name = gameDto.Name;
+            game.Passcode = gameDto.Passcode;
+            game.SubsDeadline = gameDto.SubsDeadline;
 
             _context.Entry(game).State = EntityState.Modified;
 
@@ -168,7 +166,7 @@ namespace App.Controllers
 
         // POST: api/Game
         [HttpPost, Authorize]
-        public async Task<ActionResult<Game>> PostGame(GameDTO gameDTO)
+        public async Task<ActionResult<Game>> PostGame(GameDto gameDto)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -177,7 +175,7 @@ namespace App.Controllers
             }
 
             // Competition check.
-            var competition = await _context.Competition.FindAsync(gameDTO.CompetitionID);
+            var competition = await _context.Competition.FindAsync(gameDto.CompetitionID);
             if (competition is null)
             {
                 return NotFound();
@@ -189,43 +187,41 @@ namespace App.Controllers
 
             // Submission deadline must be at least 5 min in future.
             var dateTimeNow = DateTime.Now;
-            if (gameDTO.SubsDeadline is not null)
+            if (gameDto.SubsDeadline is not null &&
+                gameDto.SubsDeadline < dateTimeNow.AddMinutes(5))
             {
-                if (gameDTO.SubsDeadline < dateTimeNow.AddMinutes(5))
-                {
-                    return BadRequest(MessageRepo.TooEarlySubsDeadline);
-                }
+                return BadRequest(MessageRepo.TooEarlySubsDeadline);
             }
 
             // "ScoringRules" must be in accordance to template.
-            string rawSRulesTemp = _context.Formula
+            string rawSRulesTemp = await _context.Formula
                 .Where(f => f.ID == competition.FormulaID)
                 .Select(f => f.ScoringRulesTemplate)
-                .First();
+                .FirstAsync();
             var sRulesTemp = JsonDocument.Parse(rawSRulesTemp);
-            if (!JsonDataChecker.ScoringRulesOnTemplate(sRulesTemp, gameDTO.ScoringRules))
+            if (!JsonDataChecker.ScoringRulesOnTemplate(sRulesTemp, gameDto.ScoringRules))
             {
                 return BadRequest(MessageRepo.UnfitData);
             }
 
             // Creation.
             var compData = JsonDocument.Parse(competition.Data);
-            int maxScore = GuessScorer.Evaluate(compData, compData, gameDTO.ScoringRules);
+            int maxScore = GuessScorer.Evaluate(compData, compData, gameDto.ScoringRules);
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            string rawSRules = JsonSerializer.Serialize(gameDTO.ScoringRules.RootElement);
+            string rawSRules = JsonSerializer.Serialize(gameDto.ScoringRules.RootElement);
             var game = new Game
             {
                 AppUserID = userId,
-                CompetitionID = gameDTO.CompetitionID,
+                CompetitionID = gameDto.CompetitionID,
                 Creation = dateTimeNow,
-                Description = gameDTO.Description,
+                Description = gameDto.Description,
                 ID = DataGen.GenerateID(),
                 MaxScore = maxScore,
-                MaxGuessCount = gameDTO.MaxGuessCount,
-                Name = gameDTO.Name,
-                Passcode = gameDTO.Passcode,
+                MaxGuessCount = gameDto.MaxGuessCount,
+                Name = gameDto.Name,
+                Passcode = gameDto.Passcode,
                 ScoringRules = rawSRules,
-                SubsDeadline = gameDTO.SubsDeadline
+                SubsDeadline = gameDto.SubsDeadline
             };
 
             _context.Game.Add(game);
