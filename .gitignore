@@ -1,4 +1,6 @@
+.sonarqube
 bin
+helpers
 migrations
 notes
 obj

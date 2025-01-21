@@ -84,7 +84,7 @@ namespace App.Controllers
 
         // PUT: api/Competition/5
         [HttpPut("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
-        public async Task<IActionResult> PutCompetition(int id, CompetitionDTO competitionDTO)
+        public async Task<IActionResult> PutCompetition(int id, CompetitionDto competitionDto)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -100,11 +100,11 @@ namespace App.Controllers
             }
 
             // If "Data" is to be changed...
-            var rawData = JsonSerializer.Serialize(competitionDTO.Data.RootElement);
+            var rawData = JsonSerializer.Serialize(competitionDto.Data.RootElement);
             if (competition.Data != rawData)
             {
                 // Updated data must be in accordance to template.
-                if (!CheckData(competitionDTO))
+                if (!CheckData(competitionDto))
                 {
                     return BadRequest(MessageRepo.UnfitData);
                 }
@@ -119,19 +119,19 @@ namespace App.Controllers
                 foreach (var game in games)
                 {
                     var gameSRules = JsonDocument.Parse(game.ScoringRules);
-                    game.MaxScore = GuessScorer.Evaluate(competitionDTO.Data, competitionDTO.Data, gameSRules);
+                    game.MaxScore = GuessScorer.Evaluate(competitionDto.Data, competitionDto.Data, gameSRules);
                     foreach (var guess in game.Guesses)
                     {
                         var guessData = JsonDocument.Parse(guess.Data);
-                        guess.Score = GuessScorer.Evaluate(guessData, competitionDTO.Data, gameSRules);
+                        guess.Score = GuessScorer.Evaluate(guessData, competitionDto.Data, gameSRules);
                     }
                 }
             }
 
             // Other available updates.
-            competition.Active = competitionDTO.Active;
-            competition.Description = competitionDTO.Description;
-            competition.Name = competitionDTO.Name;
+            competition.Active = competitionDto.Active;
+            competition.Description = competitionDto.Description;
+            competition.Name = competitionDto.Name;
 
             _context.Entry(competition).State = EntityState.Modified;
 
@@ -153,7 +153,7 @@ namespace App.Controllers
 
         // POST: api/Competition
         [HttpPost, Authorize(Policy = PolicyReference.AccreditedOnly)]
-        public async Task<ActionResult<Competition>> PostCompetition(CompetitionDTO competitionDTO)
+        public async Task<ActionResult<Competition>> PostCompetition(CompetitionDto competitionDto)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -162,27 +162,27 @@ namespace App.Controllers
             }
 
             // Formula check.
-            var formula = await _context.Formula.FindAsync(competitionDTO.FormulaID);
+            var formula = await _context.Formula.FindAsync(competitionDto.FormulaID);
             if (formula is null)
             {
                 return NotFound();
             }
 
             // "Data" must be in accordance to template.
-            if (!CheckData(competitionDTO))
+            if (!CheckData(competitionDto))
             {
                 return BadRequest(MessageRepo.UnfitData);
             }
 
             // Creation.
-            var rawData = JsonSerializer.Serialize(competitionDTO.Data.RootElement);
+            var rawData = JsonSerializer.Serialize(competitionDto.Data.RootElement);
             var competition = new Competition
             {
                 Creation = DateTime.Now,
                 Data = rawData,
-                Description = competitionDTO.Description,
-                FormulaID = competitionDTO.FormulaID,
-                Name = competitionDTO.Name
+                Description = competitionDto.Description,
+                FormulaID = competitionDto.FormulaID,
+                Name = competitionDto.Name
             };
 
             _context.Competition.Add(competition);
@@ -212,14 +212,14 @@ namespace App.Controllers
             return _context.Competition.Any(e => e.ID == id);
         }
 
-        private bool CheckData(CompetitionDTO competitionDTO)
+        private bool CheckData(CompetitionDto competitionDto)
         {
             string rawDataTemp = _context.Formula
-                .Where(f => f.ID == competitionDTO.FormulaID)
+                .Where(f => f.ID == competitionDto.FormulaID)
                 .Select(f => f.DataTemplate)
                 .First();
             var dataTemp = JsonDocument.Parse(rawDataTemp);
-            return JsonDataChecker.DataOnTemplate(dataTemp, competitionDTO.Data);
+            return JsonDataChecker.DataOnTemplate(dataTemp, competitionDto.Data);
         }
     }
 }

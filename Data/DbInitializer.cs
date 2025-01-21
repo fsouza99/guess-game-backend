@@ -20,11 +20,12 @@ public class DbInitializer
     private const string RegularUserId = "regular-user-1";
 
     // Reads JSON file and returns its content appropriately.
-    private JsonDocument ReadJsonFile(string file)
+    private static JsonDocument ReadJsonFile(string file)
     {
         string filePath = $"Data\\Placeholders\\{file}";
         StreamReader reader = new StreamReader(filePath);
         string rawData = reader.ReadToEnd();
+        reader.Dispose();
         return JsonDocument.Parse(rawData);
     }
 
@@ -171,7 +172,6 @@ public class DbInitializer
         AddGames();
         AddGuesses();
 
-        _context.SaveChanges();
-        return;
+        await _context.SaveChangesAsync();
     }
 }

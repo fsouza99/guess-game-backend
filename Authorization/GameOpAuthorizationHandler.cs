@@ -30,12 +30,11 @@ public class GameOpAuthorizationHandler : AuthorizationHandler<OperationAuthoriz
 				context.Succeed(requirement);
 			}
 		}
-		else if (requirement.Name == Operations.Update.Name)
+		else if (
+			requirement.Name == Operations.Update.Name &&
+			resource.AppUserID == userId)
 		{
-			if (resource.AppUserID == userId)
-			{
-				context.Succeed(requirement);
-			}
+			context.Succeed(requirement);
 		}
 		return Task.CompletedTask;
 	}

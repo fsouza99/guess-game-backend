@@ -74,7 +74,7 @@ namespace App.Controllers
 
         // PUT: api/Formula/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutFormula(int id, FormulaDTO formulaDTO)
+        public async Task<IActionResult> PutFormula(int id, FormulaDto formulaDto)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -90,8 +90,8 @@ namespace App.Controllers
             }
 
             // Available updates.
-            formula.Description = formulaDTO.Description;
-            formula.Name = formulaDTO.Name;
+            formula.Description = formulaDto.Description;
+            formula.Name = formulaDto.Name;
 
             _context.Entry(formula).State = EntityState.Modified;
 
@@ -113,7 +113,7 @@ namespace App.Controllers
 
         // POST: api/Formula
         [HttpPost]
-        public async Task<ActionResult<Formula>> PostFormula(FormulaDTO formulaDTO)
+        public async Task<ActionResult<Formula>> PostFormula(FormulaDto formulaDto)
         {
             // Built-in model validation.
             if (!ModelState.IsValid)
@@ -122,19 +122,20 @@ namespace App.Controllers
             }
 
             // Check template conformance.
-            if (!CheckTemplates(formulaDTO))
+            if (!JsonDataChecker.DataTemplate(formulaDto.DataTemplate) ||
+                !JsonDataChecker.ScoringRulesTemplate(formulaDto.ScoringRulesTemplate))
             {
                 return BadRequest(MessageRepo.BadTemplate);
             }
 
             // Creation.
-            var rawDataTemp = JsonSerializer.Serialize(formulaDTO.DataTemplate.RootElement);
-            var rawSRulesTemp = JsonSerializer.Serialize(formulaDTO.ScoringRulesTemplate.RootElement);
+            var rawDataTemp = JsonSerializer.Serialize(formulaDto.DataTemplate.RootElement);
+            var rawSRulesTemp = JsonSerializer.Serialize(formulaDto.ScoringRulesTemplate.RootElement);
             var formula = new Formula
             {
                 Creation = DateTime.Now,
-                Description = formulaDTO.Description,
-                Name = formulaDTO.Name,
+                Description = formulaDto.Description,
+                Name = formulaDto.Name,
                 DataTemplate = rawDataTemp,
                 ScoringRulesTemplate = rawSRulesTemp
             };
@@ -159,13 +160,6 @@ namespace App.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool CheckTemplates(FormulaDTO formulaDTO)
-        {
-            return
-                JsonDataChecker.DataTemplate(formulaDTO.DataTemplate) &&
-                JsonDataChecker.ScoringRulesTemplate(formulaDTO.ScoringRulesTemplate);
         }
 
         private bool FormulaExists(int id)

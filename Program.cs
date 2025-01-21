@@ -14,13 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthentication();
 
-builder.Services.AddAuthorization(options =>
-    {
-        options.AddPolicy(PolicyReference.AccreditedOnly, policy =>
-            policy.RequireRole(RoleReference.Admin, RoleReference.Staff));
-        options.AddPolicy(PolicyReference.AdminOnly, policy =>
-            policy.RequireRole(RoleReference.Admin));
-    });
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(PolicyReference.AccreditedOnly, policy =>
+        policy.RequireRole(RoleReference.Admin, RoleReference.Staff))
+    .AddPolicy(PolicyReference.AdminOnly, policy =>
+        policy.RequireRole(RoleReference.Admin));
 
 builder.Services.AddControllers();
 
@@ -67,15 +65,14 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
-    context.Database.EnsureCreated();
-    if (!context.Formula.Any())
+    await context.Database.EnsureCreatedAsync();
+    if (!(await context.Formula.AnyAsync()))
     {
         var dbinit = new DbInitializer(services, context);
         await dbinit.Initialize();
     }
 }
 
-// app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
