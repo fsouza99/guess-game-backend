@@ -26,6 +26,9 @@ namespace App.Models
 
         [Comment("The maximum possible score of a guess on this game.")]
         public int MaxScore { get; set; }
+
+        [Comment("Avoid giving a guess the same number as another previously deleted one.")]
+        public int NextGuessNumber { get; set; } = 1;
         
         [Required]
         [StringLength(32)]

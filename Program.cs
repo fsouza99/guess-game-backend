@@ -37,7 +37,9 @@ builder.Services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>
 
 builder.Services.AddSingleton<IMessagingService>(await MessagingServiceFactory.Create(builder.Configuration["Messaging:Host"]!));
 
-builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddSingleton<IEmailAppMessager, EmailAppMessager>();
+
+builder.Services.AddScoped<IGameObserver, GameObserver>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {

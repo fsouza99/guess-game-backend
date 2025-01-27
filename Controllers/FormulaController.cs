@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System;
 
 namespace App.Controllers
 {
@@ -134,9 +134,9 @@ namespace App.Controllers
             var formula = new Formula
             {
                 Creation = DateTime.Now,
+                DataTemplate = rawDataTemp,
                 Description = formulaDto.Description,
                 Name = formulaDto.Name,
-                DataTemplate = rawDataTemp,
                 ScoringRulesTemplate = rawSRulesTemp
             };
 

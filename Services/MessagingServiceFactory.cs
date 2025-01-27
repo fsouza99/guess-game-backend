@@ -9,6 +9,7 @@ public static class MessagingServiceFactory
         var factory = new ConnectionFactory { HostName = hostName };
         var connection = await factory.CreateConnectionAsync();
         var channel = await connection.CreateChannelAsync();
+        
         return new MessagingService
         {
             Factory = factory,

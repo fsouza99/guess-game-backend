@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System;
 
 namespace App.Controllers
 {
@@ -23,18 +23,40 @@ namespace App.Controllers
     public class GameController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly IAuthorizationService _authorizationService;
+        private readonly IAuthorizationService _authService;
 
         public GameController(
             AppDbContext context, IAuthorizationService authorizationService)
         {
-            _authorizationService = authorizationService;
+            _authService = authorizationService;
             _context = context;
         }
 
-        private static Object GameView(Game game, AppDbContext context)
+        private Game CreateGame(GameDto gameDto, Competition competition, DateTime creationDt)
         {
-            var creator = context.AppUser.Find(game.AppUserID);
+            var compData = JsonDocument.Parse(competition.Data);
+            int maxScore = GuessScorer.Evaluate(compData, compData, gameDto.ScoringRules);
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            string rawSRules = JsonSerializer.Serialize(gameDto.ScoringRules.RootElement);
+            return new Game
+            {
+                AppUserID = userId,
+                CompetitionID = gameDto.CompetitionID,
+                Creation = creationDt,
+                Description = gameDto.Description,
+                ID = DataGen.GenerateID(),
+                MaxScore = maxScore,
+                MaxGuessCount = gameDto.MaxGuessCount,
+                Name = gameDto.Name,
+                Passcode = gameDto.Passcode,
+                ScoringRules = rawSRules,
+                SubsDeadline = gameDto.SubsDeadline
+            };
+        }
+
+        private Object GameView(Game game)
+        {
+            var creator = _context.AppUser.Find(game.AppUserID);
             return new
             {
                 CompetitionID = game.CompetitionID,
@@ -88,7 +110,7 @@ namespace App.Controllers
         {
             var query = QueryRefiner.Bound(
                 Query(competitionId, appUserId, name, publicOnly), offset, limit);
-            var result = await query.Select(g => GameView(g, _context)).ToListAsync();
+            var result = await query.Select(g => GameView(g)).ToListAsync();
             return result;
         }
 
@@ -102,7 +124,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            return GameView(game, _context);
+            return GameView(game);
         }
 
         // PUT: api/Game/5
@@ -115,7 +137,7 @@ namespace App.Controllers
                 return BadRequest();
             }
 
-            // Game check.
+            // Check game.
             var game = await _context.Game.FindAsync(id);
             if (game is null)
             {
@@ -123,7 +145,7 @@ namespace App.Controllers
             }
 
             // Only the owner can edit.
-            var authorization = await _authorizationService
+            var authorization = await _authService
                 .AuthorizeAsync(User, game, Operations.Update);
             if (!authorization.Succeeded)
             {
@@ -174,7 +196,7 @@ namespace App.Controllers
                 return BadRequest();
             }
 
-            // Competition check.
+            // Check competition.
             var competition = await _context.Competition.FindAsync(gameDto.CompetitionID);
             if (competition is null)
             {
@@ -185,7 +207,7 @@ namespace App.Controllers
                 return Conflict(MessageRepo.InactiveResource);
             }
 
-            // Submission deadline must be at least 5 min in future.
+            // Check whether submission deadline is at least 5 min in future.
             var dateTimeNow = DateTime.Now;
             if (gameDto.SubsDeadline is not null &&
                 gameDto.SubsDeadline < dateTimeNow.AddMinutes(5))
@@ -193,7 +215,7 @@ namespace App.Controllers
                 return BadRequest(MessageRepo.TooEarlySubsDeadline);
             }
 
-            // "ScoringRules" must be in accordance to template.
+            // Check conformance of "ScoringRules" with template.
             string rawSRulesTemp = await _context.Formula
                 .Where(f => f.ID == competition.FormulaID)
                 .Select(f => f.ScoringRulesTemplate)
@@ -204,32 +226,14 @@ namespace App.Controllers
                 return BadRequest(MessageRepo.UnfitData);
             }
 
-            // Creation.
-            var compData = JsonDocument.Parse(competition.Data);
-            int maxScore = GuessScorer.Evaluate(compData, compData, gameDto.ScoringRules);
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            string rawSRules = JsonSerializer.Serialize(gameDto.ScoringRules.RootElement);
-            var game = new Game
-            {
-                AppUserID = userId,
-                CompetitionID = gameDto.CompetitionID,
-                Creation = dateTimeNow,
-                Description = gameDto.Description,
-                ID = DataGen.GenerateID(),
-                MaxScore = maxScore,
-                MaxGuessCount = gameDto.MaxGuessCount,
-                Name = gameDto.Name,
-                Passcode = gameDto.Passcode,
-                ScoringRules = rawSRules,
-                SubsDeadline = gameDto.SubsDeadline
-            };
-
+            Game game = CreateGame(gameDto, competition, dateTimeNow);
             _context.Game.Add(game);
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(
                 nameof(GetGame),
                 new { id = game.ID },
-                GameView(game, _context)
+                GameView(game)
             );
         }
 
@@ -244,7 +248,7 @@ namespace App.Controllers
             }
 
             // Only the owner and site team can delete.
-            var authorization = await _authorizationService
+            var authorization = await _authService
                 .AuthorizeAsync(User, game, Operations.Update);
             if (!authorization.Succeeded)
             {

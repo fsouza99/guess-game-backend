@@ -4,13 +4,13 @@ using System.Text;
 
 namespace App.Services;
 
-public class EmailService : IEmailService
+public class EmailAppMessager : IEmailAppMessager
 {
     private readonly BasicProperties _properties;
     private readonly IMessagingService _messagingService;
     private readonly string _routingKey;
 
-    public EmailService(IMessagingService messageService, IConfiguration config)
+    public EmailAppMessager(IMessagingService messageService, IConfiguration config)
     {
         _messagingService = messageService;
         _routingKey = config["Messaging:EmailQueue"]!;
@@ -21,7 +21,7 @@ public class EmailService : IEmailService
         };
     }
 
-    private async Task SendEmailAsync(Object data)
+    private async Task MessageDataAsync(Object data)
     {
     	var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data));
     	await _messagingService.Channel.BasicPublishAsync(
@@ -30,10 +30,9 @@ public class EmailService : IEmailService
             exchange: string.Empty,
             mandatory: true,
             routingKey: _routingKey);
-    	return;
     }
 
-    public async Task SendGameFullEmailAsync(
+    public async Task MessageGameFullnessAsync(
         int maxGuessCount,
         string gameId,
         string gameName,
@@ -49,11 +48,27 @@ public class EmailService : IEmailService
             Template = "GFL",
             UserNick = userNick
         };
-        await SendEmailAsync(data);
-        return;
+        await MessageDataAsync(data);
     }
 
-    public async Task SendGuessCountUpdateEmailAsync(
+    public async Task MessageFirstGameEverAsync(
+        string gameId,
+        string gameName,
+        string recipient,
+        string userNick)
+    {
+        var data = new
+        {
+            GameID = gameId,
+            GameName = gameName,
+            Recipient = recipient,
+            Template = "FGE",
+            UserNick = userNick
+        };
+        await MessageDataAsync(data);
+    }
+
+    public async Task MessageGuessCountAsync(
         int guessCount,
         int maxGuessCount,
         string gameId,
@@ -71,7 +86,6 @@ public class EmailService : IEmailService
             Template = "GCU",
     		UserNick = userNick
     	};
-        await SendEmailAsync(data);
-        return;
+        await MessageDataAsync(data);
     }
 }

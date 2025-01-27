@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System;
 
 namespace App.Controllers
 {
@@ -161,14 +161,14 @@ namespace App.Controllers
                 return BadRequest();
             }
 
-            // Formula check.
+            // Check formula.
             var formula = await _context.Formula.FindAsync(competitionDto.FormulaID);
             if (formula is null)
             {
                 return NotFound();
             }
 
-            // "Data" must be in accordance to template.
+            // Check conformance of "Data" with template.
             if (!CheckData(competitionDto))
             {
                 return BadRequest(MessageRepo.UnfitData);

@@ -2,16 +2,17 @@ using App.Authorization.Requirements;
 using App.Controllers.ResponseMessages;
 using App.Data;
 using App.Models;
+using App.Services;
 using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System;
 
 namespace App.Controllers
 {
@@ -20,13 +21,38 @@ namespace App.Controllers
     public class GuessController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly IAuthorizationService _authorizationService;
+        private readonly IAuthorizationService _authService;
+        private readonly IGameObserver _gameObserver;
 
         public GuessController(
-            AppDbContext context, IAuthorizationService authorizationService)
+            AppDbContext context,
+            IAuthorizationService authService,
+            IGameObserver gameObserver)
         {
-            _authorizationService = authorizationService;
+            _authService = authService;
             _context = context;
+            _gameObserver = gameObserver;
+        }
+
+        private async Task<Guess> CreateGuess(GuessDto guessDto, Game game, DateTime creationDt)
+        {
+            string rawCompData = await _context.Competition
+                .Where(c => c.ID == game.CompetitionID)
+                .Select(c => c.Data)
+                .FirstAsync();
+            string rawGuessData = JsonSerializer.Serialize(guessDto.Data.RootElement);
+            var compData = JsonDocument.Parse(rawCompData);
+            var sRules = JsonDocument.Parse(game.ScoringRules);
+            int score = GuessScorer.Evaluate(guessDto.Data, compData, sRules);
+            return new Guess
+            {
+                Creation = creationDt,
+                Data = rawGuessData,
+                GameID = guessDto.GameID,
+                Name = guessDto.Name,
+                Number = game.NextGuessNumber,
+                Score = score
+            };
         }
 
         private static Object GuessView(Guess guess) => new {
@@ -118,7 +144,7 @@ namespace App.Controllers
                 return Conflict(MessageRepo.MaxGuessCountReached);
             }
 
-            // Check "Data" in accordance to template.
+            // Check conformance of "Data" with template.
             int formulaId = await _context.Competition
                 .Where(c => c.ID == game.CompetitionID)
                 .Select(c => c.FormulaID)
@@ -133,27 +159,16 @@ namespace App.Controllers
                 return BadRequest(MessageRepo.UnfitData);
             }
 
-            // Creation.
-            string rawCompData = await _context.Competition
-                .Where(c => c.ID == game.CompetitionID)
-                .Select(c => c.Data)
-                .FirstAsync();
-            string rawGuessData = JsonSerializer.Serialize(guessDto.Data.RootElement);
-            var compData = JsonDocument.Parse(rawCompData);
-            var sRules = JsonDocument.Parse(game.ScoringRules);
-            int score = GuessScorer.Evaluate(guessDto.Data, compData, sRules);
-            var guess = new Guess
-            {
-                Creation = dateTimeNow,
-                Data = rawGuessData,
-                GameID = guessDto.GameID,
-                Name = guessDto.Name,
-                Number = gameGuessCount + 1,
-                Score = score
-            };
-            
+            // Create.
+            Guess guess = await CreateGuess(guessDto, game, dateTimeNow);
             _context.Guess.Add(guess);
+
+            // Update game.
+            game.NextGuessNumber++;
+
+            // Save changes and notify game's owner of relevant events.
             await _context.SaveChangesAsync();
+            await _gameObserver.WatchAsync(game);
 
             return CreatedAtAction(
                 nameof(GetGuess),
@@ -174,10 +189,10 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            // Only game owner and site team can delete.
-            // Conveniently reuse the AuthorizationHandler for Game model class.
+            // Only game owner and staff members can delete.
+            // Conveniently reuse the "AuthorizationHandler" for Game model class.
             var game = await _context.Game.FindAsync(gameId);
-            var authorization = await _authorizationService
+            var authorization = await _authService
                 .AuthorizeAsync(User, game, Operations.Delete);
             if (!authorization.Succeeded)
             {

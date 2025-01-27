@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace App.StaticTools;
 
 public static class DataGen
@@ -6,12 +8,13 @@ public static class DataGen
 	{
 		const string alphanum = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 		const int size = 11;
+		
 		var buffer = new char[size];
-		var dice = new Random();
 		for (int i = 0; i < size; i++)
 		{
-			buffer[i] = alphanum[dice.Next(62)];
+			buffer[i] = alphanum[RandomNumberGenerator.GetInt32(62)];
 		}
+
 		return new String(buffer);
 	}
 }

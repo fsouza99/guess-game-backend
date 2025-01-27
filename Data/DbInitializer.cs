@@ -89,6 +89,7 @@ public class DbInitializer
                 MaxScore = obj.GetProperty("MaxScore").GetInt32(),
                 MaxGuessCount = obj.GetProperty("MaxGuessCount").GetInt32(),
                 Name = obj.GetProperty("Name").GetString()!,
+                NextGuessNumber = obj.GetProperty("NextGuessNumber").GetInt32(),
                 Passcode = obj.GetProperty("Passcode").GetString(),
                 ScoringRules = JsonSerializer.Serialize(obj.GetProperty("ScoringRules")),
                 SubsDeadline = (deadline.ValueKind == JsonValueKind.Null) ? null : deadline.GetDateTime()
