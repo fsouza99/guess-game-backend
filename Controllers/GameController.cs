@@ -54,9 +54,9 @@ namespace App.Controllers
             };
         }
 
-        private Object GameView(Game game)
+        private static Object GameView(Game game, AppDbContext context)
         {
-            var creator = _context.AppUser.Find(game.AppUserID);
+            var creator = context.AppUser.Find(game.AppUserID);
             return new
             {
                 CompetitionID = game.CompetitionID,
@@ -110,7 +110,7 @@ namespace App.Controllers
         {
             var query = QueryRefiner.Bound(
                 Query(competitionId, appUserId, name, publicOnly), offset, limit);
-            var result = await query.Select(g => GameView(g)).ToListAsync();
+            var result = await query.Select(g => GameView(g, _context)).ToListAsync();
             return result;
         }
 
@@ -124,7 +124,7 @@ namespace App.Controllers
                 return NotFound();
             }
 
-            return GameView(game);
+            return GameView(game, _context);
         }
 
         // PUT: api/Game/5
@@ -233,7 +233,7 @@ namespace App.Controllers
             return CreatedAtAction(
                 nameof(GetGame),
                 new { id = game.ID },
-                GameView(game)
+                GameView(game, _context)
             );
         }
 

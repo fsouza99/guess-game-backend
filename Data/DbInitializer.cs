@@ -16,9 +16,6 @@ public class DbInitializer
     // The password used by all added users.
     private const string StdPass = "W8$14#4u$wnuCX0suO7#a@82i2754k$2";
 
-    // The regular user to be added.
-    private const string RegularUserId = "regular-user-1";
-
     // Reads JSON file and returns its content appropriately.
     private static JsonDocument ReadJsonFile(string file)
     {
@@ -81,7 +78,7 @@ public class DbInitializer
             var deadline = obj.GetProperty("SubsDeadline");
             var game = new Game
             {
-                AppUserID = RegularUserId,
+                AppUserID = obj.GetProperty("AppUserID").GetString()!,
                 CompetitionID = obj.GetProperty("CompetitionID").GetInt32(),
                 Creation = obj.GetProperty("Creation").GetDateTime(),
                 Description = obj.GetProperty("Description").GetString()!,
@@ -146,7 +143,7 @@ public class DbInitializer
         {
             Email = "gfritz@hotmail.com",
             EmailConfirmed = false,
-            Id = RegularUserId,
+            Id = "regular-user-1",
             Nickname = "GFritz",
             UserName = "gfritz@hotmail.com"
         };
