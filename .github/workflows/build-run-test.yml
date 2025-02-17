@@ -26,7 +26,7 @@ jobs:
         with:
           path: TestRepo
           ref: master
-          repository: fsouza99/ggbt-actions-test
+          repository: fsouza99/guess-game-backend-testing
           token: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Await
