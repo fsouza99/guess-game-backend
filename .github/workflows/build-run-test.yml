@@ -1,0 +1,36 @@
+name: Build, Run and Test
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build, Run and Test
+    runs-on: self-hosted
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+        with:
+          path: AppRepo
+
+      - name: Build app
+        run: dotnet build AppRepo\GuessGame.csproj
+        
+      - name: Run app
+        run: Start-Process dotnet -ArgumentList "run", "--project", "AppRepo"
+
+      - name: Checkout test repo
+        uses: actions/checkout@v4
+        with:
+          path: TestRepo
+          ref: master
+          repository: fsouza99/ggbt-actions-test
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Await
+        run: sleep 40
+          
+      - name: Run tests
+        run: cd TestRepo; pytest; cd ..

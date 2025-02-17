@@ -1,0 +1,129 @@
+[
+    {
+        "Active": true,
+        "Data": {
+            "A1": "HOL",
+            "A2": "SEN",
+            "B1": "ING",
+            "B2": "EUA",
+            "C1": "ARG",
+            "C2": "POL",
+            "D1": "FRA",
+            "D2": "AUS",
+            "E1": "JAP",
+            "E2": "ESP",
+            "F1": "MAR",
+            "F2": "CRO",
+            "G1": "BRA",
+            "G2": "SUI",
+            "H1": "POR",
+            "H2": "CRS",
+            "R16": [
+                "HOL",
+                "EUA",
+                "ARG",
+                "AUS",
+                "JAP",
+                "CRO",
+                "BRA",
+                "CRS",
+                "ING",
+                "SEN",
+                "FRA",
+                "POL",
+                "MAR",
+                "ESP",
+                "POR",
+                "SUI"
+            ],
+            "QF": [
+                "HOL",
+                "ARG",
+                "CRO",
+                "BRA",
+                "ING",
+                "FRA",
+                "MAR",
+                "POR"
+            ],
+            "SF": [
+                "ARG",
+                "CRO",
+                "FRA",
+                "MAR"
+            ],
+            "FN": [
+                "ARG",
+                "FRA"
+            ],
+            "CH": "ARG"
+        },
+        "Description": "The World Cup of 2022 held in Catar.",
+        "FormulaID": 1,
+        "ID": 1,
+        "Name": "Copa do Mundo 2022"
+    },
+    {
+        "Active": true,
+        "Data": {
+            "A1": "text",
+            "A2": "text",
+            "B1": "text",
+            "B2": "text",
+            "C1": "text",
+            "C2": "text",
+            "D1": "text",
+            "D2": "text",
+            "E1": "text",
+            "E2": "text",
+            "F1": "text",
+            "F2": "text",
+            "G1": "text",
+            "G2": "text",
+            "H1": "text",
+            "H2": "text",
+            "R16": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "QF": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "SF": [
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "FN": [
+                "text",
+                "text"
+            ],
+            "CH": "text"
+        },
+        "Description": "The Club World Cup of 2025 held in USA.",
+        "FormulaID": 1,
+        "ID": 2,
+        "Name": "Copa do Mundo de Clubes 2025"
+    }
+]

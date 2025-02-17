@@ -1,0 +1,317 @@
+[
+    {
+        "Data": {
+            "A1": "EQU",
+            "A2": "SEN",
+            "B1": "ING",
+            "B2": "EUA",
+            "C1": "ARG",
+            "C2": "POL",
+            "D1": "FRA",
+            "D2": "AUS",
+            "E1": "ALE",
+            "E2": "JAP",
+            "F1": "BEL",
+            "F2": "CRO",
+            "G1": "BRA",
+            "G2": "CAM",
+            "H1": "POR",
+            "H2": "URU",
+            "R16": [
+                "EQU",
+                "EUA",
+                "ARG",
+                "AUS",
+                "ALE",
+                "CRO",
+                "BRA",
+                "URU",
+                "ING",
+                "SEN",
+                "FRA",
+                "POL",
+                "BEL",
+                "JAP",
+                "POR",
+                "CAM"
+            ],
+            "QF": [
+                "EQU",
+                "ARG",
+                "ALE",
+                "BRA",
+                "SEN",
+                "FRA",
+                "BEL",
+                "POR"
+            ],
+            "SF": [
+                "ARG",
+                "ALE",
+                "FRA",
+                "POR"
+            ],
+            "FN": [
+                "ARG",
+                "POR"
+            ],
+            "CH": "ARG"
+        },
+        "GameID": "1",
+        "Name": "Michael",
+        "Number": 1,
+        "Score": 3500
+    },
+    {
+        "Data": {
+            "A1": "HOL",
+            "A2": "EQU",
+            "B1": "ING",
+            "B2": "EUA",
+            "C1": "ARG",
+            "C2": "MEX",
+            "D1": "DIN",
+            "D2": "FRA",
+            "E1": "ALE",
+            "E2": "ESP",
+            "F1": "CRO",
+            "F2": "BEL",
+            "G1": "BRA",
+            "G2": "SUI",
+            "H1": "URU",
+            "H2": "POR",
+            "R16": [
+                "HOL",
+                "EUA",
+                "ARG",
+                "FRA",
+                "ALE",
+                "BEL",
+                "BRA",
+                "POR",
+                "ING",
+                "EQU",
+                "DIN",
+                "MEX",
+                "CRO",
+                "ESP",
+                "URU",
+                "SUI"
+            ],
+            "QF": [
+                "HOL",
+                "ARG",
+                "BEL",
+                "BRA",
+                "ING",
+                "DIN",
+                "CRO",
+                "URU"
+            ],
+            "SF": [
+                "ARG",
+                "BRA",
+                "ING",
+                "URU"
+            ],
+            "FN": [
+                "ARG",
+                "ING"
+            ],
+            "CH": "ARG"
+        },
+        "GameID": "1",
+        "Name": "Gabriel",
+        "Number": 2,
+        "Score": 3150
+    },
+    {
+        "Data": {
+            "A1": "HOL",
+            "A2": "EQU",
+            "B1": "ING",
+            "B2": "GAL",
+            "C1": "ARG",
+            "C2": "MEX",
+            "D1": "FRA",
+            "D2": "DIN",
+            "E1": "ESP",
+            "E2": "ALE",
+            "F1": "BEL",
+            "F2": "CRO",
+            "G1": "BRA",
+            "G2": "SER",
+            "H1": "POR",
+            "H2": "URU",
+            "R16": [
+                "HOL",
+                "GAL",
+                "ARG",
+                "DIN",
+                "ESP",
+                "CRO",
+                "BRA",
+                "URU",
+                "ING",
+                "EQU",
+                "FRA",
+                "MEX",
+                "BEL",
+                "ALE",
+                "POR",
+                "SER"
+            ],
+            "QF": [
+                "HOL",
+                "ARG",
+                "ESP",
+                "BRA",
+                "ING",
+                "FRA",
+                "BEL",
+                "POR"
+            ],
+            "SF": [
+                "ARG",
+                "ESP",
+                "ING",
+                "BEL"
+            ],
+            "FN": [
+                "ARG",
+                "ING"
+            ],
+            "CH": "ARG"
+        },
+        "GameID": "1",
+        "Name": "John",
+        "Number": 3,
+        "Score": 3100
+    },
+    {
+        "Data": {
+            "A1": "HOL",
+            "A2": "SEN",
+            "B1": "ING",
+            "B2": "EUA",
+            "C1": "ARG",
+            "C2": "POL",
+            "D1": "FRA",
+            "D2": "DIN",
+            "E1": "ALE",
+            "E2": "ESP",
+            "F1": "BEL",
+            "F2": "CRO",
+            "G1": "BRA",
+            "G2": "SER",
+            "H1": "POR",
+            "H2": "URU",
+            "R16": [
+                "HOL",
+                "EUA",
+                "ARG",
+                "DIN",
+                "ALE",
+                "CRO",
+                "BRA",
+                "URU",
+                "ING",
+                "SEN",
+                "FRA",
+                "POL",
+                "BEL",
+                "ESP",
+                "POR",
+                "SER"
+            ],
+            "QF": [
+                "HOL",
+                "ARG",
+                "ALE",
+                "BRA",
+                "SEN",
+                "FRA",
+                "BEL",
+                "SER"
+            ],
+            "SF": [
+                "ARG",
+                "BRA",
+                "FRA",
+                "SER"
+            ],
+            "FN": [
+                "BRA",
+                "FRA"
+            ],
+            "CH": "BRA"
+        },
+        "GameID": "1",
+        "Name": "James",
+        "Number": 4,
+        "Score": 3075
+    },
+    {
+        "Data": {
+            "A1": "HOL",
+            "A2": "EQU",
+            "B1": "ING",
+            "B2": "GAL",
+            "C1": "ARG",
+            "C2": "POL",
+            "D1": "FRA",
+            "D2": "DIN",
+            "E1": "ESP",
+            "E2": "ALE",
+            "F1": "CRO",
+            "F2": "BEL",
+            "G1": "BRA",
+            "G2": "SER",
+            "H1": "POR",
+            "H2": "URU",
+            "R16": [
+                "HOL",
+                "GAL",
+                "ARG",
+                "DIN",
+                "ESP",
+                "BEL",
+                "BRA",
+                "URU",
+                "ING",
+                "EQU",
+                "FRA",
+                "POL",
+                "CRO",
+                "ALE",
+                "POR",
+                "SER"
+            ],
+            "QF": [
+                "HOL",
+                "ARG",
+                "ESP",
+                "BRA",
+                "ING",
+                "FRA",
+                "CRO",
+                "SER"
+            ],
+            "SF": [
+                "ARG",
+                "BRA",
+                "FRA",
+                "CRO"
+            ],
+            "FN": [
+                "BRA",
+                "FRA"
+            ],
+            "CH": "BRA"
+        },
+        "GameID": "1",
+        "Name": "Mark",
+        "Number": 5,
+        "Score": 3050
+    } 
+]
