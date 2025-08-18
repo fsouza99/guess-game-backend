@@ -3,20 +3,20 @@ namespace App.Services;
 /* Pushes messages to email application requesting it to send user notifications. */
 public interface IEmailAppMessager
 {
-    public Task MessageGameFullnessAsync(
+    public Task EmailGameFullnessAsync(
         int maxGuessCount,
         string gameId,
         string gameName,
         string recipient,
         string userNick);
 
-    public Task MessageFirstGameEverAsync(
+    public Task EmailFirstGameEverAsync(
         string gameId,
         string gameName,
         string recipient,
         string userNick);
 
-    public Task MessageGuessCountAsync(
+    public Task EmailGuessCountAsync(
         int guessCount,
         int maxGuessCount,
         string gameId,

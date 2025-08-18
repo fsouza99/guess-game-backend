@@ -19,7 +19,7 @@ jobs:
         run: dotnet build AppRepo\GuessGame.csproj
         
       - name: Run app
-        run: Start-Process dotnet -ArgumentList "run", "--project", "AppRepo"
+        run: Start-Process dotnet -ArgumentList "run", "--project", "AppRepo", "--nomsg", "--sqlite"
 
       - name: Checkout test repo
         uses: actions/checkout@v4

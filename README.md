@@ -1,3 +1,5 @@
+# Palpite Amigo (backend)
+
 ## O popular *bolão*
 
 ### Sobre
@@ -16,7 +18,22 @@ Usuários cadastrados podem organizar disputas onde palpites podem ser deixados 
 
 **Palpites**: Um palpite para resultados de eventos reais é atrelado a um jogo. Usuários da API podem deixar um palpite sem a necessidade de autenticação, mas ainda sujeitos às regras de pontuação e acesso definidas pelo autor do jogo.
 
-#### *Notas*
+### Execução
+
+Um arquivo *appsettings.json* é esperado na pasta do projeto com as *strings* de conexão a bancos de dados.
+
+```cmd
+dotnet run [options]
+```
+
+As opções implementadas pelo *app* são as seguintes:
+
+- --sqlite: Utiliza o SQLite como provedor de banco de dados. Por padrão, o SQL Server é utilizado.
+- --nomsg: Passa um objeto *stub* como serviço de mensageria, que nada realiza, de modo a não ser necessária a provisão de um servidor do tipo.
+
+O *workflow* de teste executa a aplicação com ambas as opções.
+
+### *Notas*
 
 A aplicação valida os dados inseridos para garantir sua integridade.
 

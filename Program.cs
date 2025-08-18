@@ -3,14 +3,22 @@ using App.Authorization.References;
 using App.Controllers;
 using App.Data;
 using App.Identity.Data;
-using App.Identity.Endpoints;
 using App.Services;
+using App.StaticTools.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Retrieve user parameters.
+
+bool useMessaging = !args.Contains("--nomsg");
+bool useSqlite = args.Contains("--sqlite");
+
+// Add services on auth operations, database, access and testing.
 
 builder.Services.AddAuthentication();
 
@@ -22,8 +30,7 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("AppDbContext") ?? throw new InvalidOperationException("Connection string 'AppDbContext' not found.")));
+builder.Services.AddAppDbContext(builder.Configuration, useSqlite);
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -33,13 +40,18 @@ builder.Services.AddIdentityApiEndpoints<AppUser>()
 
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
+builder.Services
+    .AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
 
-builder.Services.AddSingleton<IMessagingService>(await MessagingServiceFactory.Create(builder.Configuration["Messaging:Host"]!));
+// Add related services of game observation, messaging and email.
+
+await builder.Services.AddMessagingService(builder.Configuration, useMessaging);
 
 builder.Services.AddSingleton<IEmailAppMessager, EmailAppMessager>();
 
 builder.Services.AddScoped<IGameObserver, GameObserver>();
+
+// Make user-related configurations.
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -54,26 +66,23 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Name = "GuessGame";
 });
 
+// Build app.
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AppDbContext>();
-    await context.Database.EnsureCreatedAsync();
-    if (!(await context.Formula.AnyAsync()))
-    {
-        var dbinit = new DbInitializer(services, context);
-        await dbinit.Initialize();
-    }
-}
+// Provide initial app data.
+
+await app.InitializeDatabaseAsync(useSqlite);
+
+// Settle middleware and mappings.
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -81,5 +90,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapIdentityApi<AppUser>();
 app.MapExtraIdentityEndpoints();
+
+// Run app.
 
 app.Run();

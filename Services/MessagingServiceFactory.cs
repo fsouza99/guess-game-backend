@@ -9,12 +9,13 @@ public static class MessagingServiceFactory
         var factory = new ConnectionFactory { HostName = hostName };
         var connection = await factory.CreateConnectionAsync();
         var channel = await connection.CreateChannelAsync();
+        var service = new MessagingService(factory, connection, channel);
         
-        return new MessagingService
-        {
-            Factory = factory,
-            Connection = connection,
-            Channel = channel
-        };
+        return service;
+    }
+
+    public static EmptyMessagingService CreateEmpty()
+    {
+        return new EmptyMessagingService();
     }
 }

@@ -21,7 +21,7 @@ public class GameObserver : IGameObserver
 	{
 		if (gameGuessCount == game.MaxGuessCount)
 		{	
-			_emailMessager.MessageGameFullnessAsync(
+			_emailMessager.EmailGameFullnessAsync(
 	        	game.MaxGuessCount,
 	        	game.ID,
 	        	game.Name,
@@ -31,7 +31,7 @@ public class GameObserver : IGameObserver
 		}
 		if (gameGuessCount == game.MaxGuessCount / 2)
 		{	
-			_emailMessager.MessageGuessCountAsync(
+			_emailMessager.EmailGuessCountAsync(
 	        	gameGuessCount,
 	        	game.MaxGuessCount,
 	        	game.ID,
@@ -47,7 +47,7 @@ public class GameObserver : IGameObserver
 	{
 		if (creatorGameCount == 1)
 		{	
-			_emailMessager.MessageFirstGameEverAsync(
+			_emailMessager.EmailFirstGameEverAsync(
 	        	game.ID,
 	        	game.Name,
 	        	gameCreator.Email!,

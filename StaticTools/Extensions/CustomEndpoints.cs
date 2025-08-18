@@ -4,22 +4,22 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace App.Identity.Endpoints;
+namespace App.StaticTools.Extensions;
 
 public static class CustomEndpoints
 {
     // Adds extra endpoints to Identity, addressing particular needs in account management.
     public static void MapExtraIdentityEndpoints(this WebApplication app)
     {
-        MapPostNicknameEndpoint(app);
-        MapPostEmailEndpoint(app);
-        MapGetProfileEndpoint(app);
-        MapPostLogoutEndpoint(app);
-        MapPostDeleteAccountEndpoint(app);
+        app.MapPostNicknameEndpoint();
+        app.MapPostEmailEndpoint();
+        app.MapGetProfileEndpoint();
+        app.MapPostLogoutEndpoint();
+        app.MapPostDeleteAccountEndpoint();
     }
 
     // Allows the user to set his nickname.
-    public static void MapPostNicknameEndpoint(WebApplication app)
+    public static void MapPostNicknameEndpoint(this WebApplication app)
     {
         app.MapPost(
             "/manage/nickname",
@@ -47,7 +47,7 @@ public static class CustomEndpoints
     }
 
     // Allows the user to set his email and have the username updated accordingly.
-    public static void MapPostEmailEndpoint(WebApplication app)
+    public static void MapPostEmailEndpoint(this WebApplication app)
     {
         app.MapPost(
             "/manage/email",
@@ -81,7 +81,7 @@ public static class CustomEndpoints
     }
 
     // Allows the user to retrieve his profile data.
-    public static void MapGetProfileEndpoint(WebApplication app)
+    public static void MapGetProfileEndpoint(this WebApplication app)
     {
         app.MapGet(
             "/manage/profile",
@@ -107,7 +107,7 @@ public static class CustomEndpoints
     }
 
     // Allows the user to log out from his account.
-    public static void MapPostLogoutEndpoint(WebApplication app)
+    public static void MapPostLogoutEndpoint(this WebApplication app)
     {
         app.MapPost(
             "/logout",
@@ -126,7 +126,7 @@ public static class CustomEndpoints
     }
 
     // Allows the user to delete his own account.
-    public static void MapPostDeleteAccountEndpoint(WebApplication app)
+    public static void MapPostDeleteAccountEndpoint(this WebApplication app)
     {
         app.MapDelete(
             "/delete",

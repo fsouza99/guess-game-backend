@@ -1,12 +1,7 @@
-using RabbitMQ.Client;
-using System.Text.Json;
-using System.Text;
-
 namespace App.Services;
 
 public class EmailAppMessager : IEmailAppMessager
 {
-    private readonly BasicProperties _properties;
     private readonly IMessagingService _messagingService;
     private readonly string _routingKey;
 
@@ -14,25 +9,9 @@ public class EmailAppMessager : IEmailAppMessager
     {
         _messagingService = messageService;
         _routingKey = config["Messaging:EmailQueue"]!;
-        _properties = new BasicProperties
-        {
-            ContentType = "application/json",
-            Persistent = true
-        };
     }
 
-    private async Task MessageDataAsync(Object data)
-    {
-    	var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data));
-    	await _messagingService.Channel.BasicPublishAsync(
-            basicProperties: _properties,
-            body: body,
-            exchange: string.Empty,
-            mandatory: true,
-            routingKey: _routingKey);
-    }
-
-    public async Task MessageGameFullnessAsync(
+    public async Task EmailGameFullnessAsync(
         int maxGuessCount,
         string gameId,
         string gameName,
@@ -48,10 +27,10 @@ public class EmailAppMessager : IEmailAppMessager
             Template = "GFL",
             UserNick = userNick
         };
-        await MessageDataAsync(data);
+        await _messagingService.MessageDataAsync(data, _routingKey);
     }
 
-    public async Task MessageFirstGameEverAsync(
+    public async Task EmailFirstGameEverAsync(
         string gameId,
         string gameName,
         string recipient,
@@ -65,10 +44,10 @@ public class EmailAppMessager : IEmailAppMessager
             Template = "FGE",
             UserNick = userNick
         };
-        await MessageDataAsync(data);
+        await _messagingService.MessageDataAsync(data, _routingKey);
     }
 
-    public async Task MessageGuessCountAsync(
+    public async Task EmailGuessCountAsync(
         int guessCount,
         int maxGuessCount,
         string gameId,
@@ -86,6 +65,6 @@ public class EmailAppMessager : IEmailAppMessager
             Template = "GCU",
     		UserNick = userNick
     	};
-        await MessageDataAsync(data);
+        await _messagingService.MessageDataAsync(data, _routingKey);
     }
 }

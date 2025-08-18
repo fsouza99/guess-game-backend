@@ -160,16 +160,35 @@ public class DbInitializer
         }
     }
 
-    public async Task Initialize()
+    public async Task AddUserDataToContext()
     {
-        // Data must be added in some order that respects FK constraints.
+        // Respect FK constraints when inserting.
         await AddRolesAsync();
         await AddAppUsersAsync();
+    }
+
+    public async Task AddBusinessDataToContext()
+    {
+        /* "Formula" and "Competition" have "auto IDs" on SQL Server. With that,
+            no manual ID setting is allowed. Although SQL "SET" commands could solve
+            this, we judge it more adequate to avoid insertion on these models
+            directly from code. Instead, an associated procedure must be made
+            available for execution on the database.
+
+            Call this method only when inserting into SQLite.
+        */
+        // FK constraints must be respected for insertion.
         AddFormulas();
         AddCompetitions();
         AddGames();
         AddGuesses();
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task AddUserAndBusinessDataToContext()
+    {
+        await AddUserDataToContext();
+        await AddBusinessDataToContext();
     }
 }
