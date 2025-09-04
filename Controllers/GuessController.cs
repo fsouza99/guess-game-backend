@@ -107,12 +107,6 @@ namespace App.Controllers
         [HttpPost]
         public async Task<ActionResult<Guess>> PostGuess(GuessDto guessDto)
         {
-            // Built-in model validation.
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
             // Check game.
             var game = await _context.Game.FindAsync(guessDto.GameID);
             if (game is null)

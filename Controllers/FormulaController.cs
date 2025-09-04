@@ -76,12 +76,6 @@ namespace App.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutFormula(int id, FormulaDto formulaDto)
         {
-            // Built-in model validation.
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-            
             // Formula check.
             var formula = await _context.Formula.FindAsync(id);
             if (formula is null)
@@ -115,12 +109,6 @@ namespace App.Controllers
         [HttpPost]
         public async Task<ActionResult<Formula>> PostFormula(FormulaDto formulaDto)
         {
-            // Built-in model validation.
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
             // Check template conformance.
             if (!JsonDataChecker.DataTemplate(formulaDto.DataTemplate) ||
                 !JsonDataChecker.ScoringRulesTemplate(formulaDto.ScoringRulesTemplate))

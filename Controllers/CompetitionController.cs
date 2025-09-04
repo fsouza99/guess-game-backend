@@ -86,12 +86,6 @@ namespace App.Controllers
         [HttpPut("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
         public async Task<IActionResult> PutCompetition(int id, CompetitionDto competitionDto)
         {
-            // Built-in model validation.
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-            
             // Competition check.
             var competition = await _context.Competition.FindAsync(id);
             if (competition is null)
@@ -155,12 +149,6 @@ namespace App.Controllers
         [HttpPost, Authorize(Policy = PolicyReference.AccreditedOnly)]
         public async Task<ActionResult<Competition>> PostCompetition(CompetitionDto competitionDto)
         {
-            // Built-in model validation.
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
             // Check formula.
             var formula = await _context.Formula.FindAsync(competitionDto.FormulaID);
             if (formula is null)

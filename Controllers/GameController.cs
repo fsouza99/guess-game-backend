@@ -132,12 +132,6 @@ namespace App.Controllers
         [HttpPut("{id}"), Authorize]
         public async Task<IActionResult> PutGame(string id, GameDto gameDto)
         {
-            // Built-in model validation.
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
             // Check game.
             var game = await _context.Game.FindAsync(id);
             if (game is null)
@@ -191,12 +185,6 @@ namespace App.Controllers
         [HttpPost, Authorize]
         public async Task<ActionResult<Game>> PostGame(GameDto gameDto)
         {
-            // Built-in model validation.
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
             // Check competition.
             var competition = await _context.Competition.FindAsync(gameDto.CompetitionID);
             if (competition is null)
