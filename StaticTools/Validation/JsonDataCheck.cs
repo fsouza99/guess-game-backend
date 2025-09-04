@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace App.StaticTools;
 
 /// <summary>
-/// Provides static methods for JSON data evaluation, targeted on the JSON data
+/// Provides static methods for JSON data evaluation, developed for the JSON data
 /// expected to be persisted on "Guess", "Formula", "Game" and "Competition" tables.
 /// </summary>
 public static class JsonDataChecker
@@ -63,7 +63,7 @@ public static class JsonDataChecker
 	}
 
 	/// <summary>
-	/// Checks the conformance of JSON data with a template.
+	/// Check the conformance of JSON data with a template.
 	/// The JSON of the template is expected to be valid.
 	/// </summary>
 	public static bool DataOnTemplate(JsonDocument template, JsonDocument data)
@@ -112,6 +112,9 @@ public static class JsonDataChecker
 
 	/// <summary>
 	/// Validates JSON data representing a template for competition data.
+	/// The JSON data must include a non-empty root node.
+	/// An inner value cannot be an object, null or undefined.
+	/// If an inner value is an array, it can only contain strings.
 	/// </summary>
 	public static bool DataTemplate(JsonDocument template)
 	{
@@ -139,16 +142,13 @@ public static class JsonDataChecker
 				return false;
 			}
 
-			// An array can only contain simple types as well, and no inner arrays.
+			// An array can only contain strings.
 			if (element.ValueKind == JsonValueKind.Array)
 			{
 				var elements = element.EnumerateArray();
 				foreach (var item in elements)
 				{
-					if (
-						item.ValueKind == JsonValueKind.Array ||
-						IsNullObjUndef(item)
-						)
+					if (item.ValueKind != JsonValueKind.String)
 					{
 						return false;
 					}
@@ -161,6 +161,8 @@ public static class JsonDataChecker
 
 	/// <summary>
 	/// Validates JSON data representing a template for scoring rules.
+	/// The JSON data must include a non-empty root node.
+	/// An inner value can only be an integer in [0, 1000] interval.
 	/// </summary>
 	public static bool ScoringRulesTemplate(JsonDocument template)
 	{
@@ -195,6 +197,7 @@ public static class JsonDataChecker
 	/// <summary>
 	/// Checks the conformance of JSON data representing scoring rules with a template.
 	/// The JSON of the template is expected to be valid.
+	/// Number values must be in interval determined by parameters (min, max).
 	/// </summary>
 	public static bool ScoringRulesOnTemplate(JsonDocument template, JsonDocument data, int min=0, int max=1000)
 	{

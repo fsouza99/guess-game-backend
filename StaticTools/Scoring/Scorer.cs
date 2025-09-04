@@ -2,8 +2,17 @@ using System.Text.Json;
 
 namespace App.StaticTools;
 
+/// <summary>
+/// Provides a main method to evaluate a guess according to reference data and
+/// a set of scoring rules.
+/// </summary>
 public static class GuessScorer
 {
+	/// <summary>
+	/// Evaluate array in guess data according to reference.
+	/// The returned value equals the number of common items on guess and
+	/// reference arrays multiplied by the informed points.
+	/// </summary>
 	private static int EvaluateArrayElement(
 		JsonElement guessElement, JsonElement referenceElement, int points)
 	{
@@ -25,6 +34,9 @@ public static class GuessScorer
 		return total;
 	}
 
+	/// <summary>
+	/// Evaluate a guess according to reference data and a set of scoring rules.
+	/// </summary>
 	public static int Evaluate(JsonDocument guess, JsonDocument reference, JsonDocument rules)
 	{
 		JsonElement guessRoot = guess.RootElement;
