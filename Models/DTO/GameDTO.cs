@@ -9,7 +9,7 @@ namespace App.Models
         public int CompetitionID { get; set; } // FK
 
         [Required]
-        [StringLength(1024)]
+        [StringLength(256)]
         public string Description { get; set; } = default!;
         
         [Range(1, 100)]

@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 bool useMessaging = !args.Contains("--nomsg");
 bool useSqlite = args.Contains("--sqlite");
+bool useSwaggerUI = args.Contains("--swagger");
 
 // Add services on auth operations, database, access and testing.
 
@@ -32,13 +33,15 @@ builder.Services.AddControllers();
 
 builder.Services.AddAppDbContext(builder.Configuration, useSqlite);
 
-builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
-builder.Services.AddSwaggerGen();
+if (useSwaggerUI)
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+}
 
 builder.Services
     .AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
@@ -72,7 +75,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() && useSwaggerUI)
 {
     app.UseSwagger();
     app.UseSwaggerUI();

@@ -7,7 +7,7 @@
         "ID": "1",
         "MaxScore": 5600,
         "MaxGuessCount": 100,
-        "Name": "Free Game - No restrictions",
+        "Name": "Free Game",
         "NextGuessNumber": 6,
         "Passcode": null,
         "ScoringRules": {
@@ -43,7 +43,7 @@
         "ID": "2",
         "MaxScore": 5600,
         "MaxGuessCount": 100,
-        "Name": "Old Game - Deadline Passed",
+        "Name": "Old Game",
         "NextGuessNumber": 1,
         "Passcode": null,
         "ScoringRules": {
@@ -79,7 +79,7 @@
         "ID": "3",
         "MaxScore": 5600,
         "MaxGuessCount": 1,
-        "Name": "Single Player Game - 1 Guess",
+        "Name": "Single Player Game",
         "NextGuessNumber": 1,
         "Passcode": null,
         "ScoringRules": {
@@ -115,7 +115,7 @@
         "ID": "4",
         "MaxScore": 5600,
         "MaxGuessCount": 100,
-        "Name": "Private Game - Passcode Needed",
+        "Name": "Private Game",
         "NextGuessNumber": 1,
         "Passcode": "12345",
         "ScoringRules": {

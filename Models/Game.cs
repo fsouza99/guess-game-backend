@@ -14,7 +14,7 @@ namespace App.Models
         public DateTime Creation { get; set; }
         
         [Required]
-        [StringLength(1024)]
+        [StringLength(256)]
         public string Description { get; set; } = default!;
         
         [Required]
