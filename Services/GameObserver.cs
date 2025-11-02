@@ -60,14 +60,17 @@ public class GameObserver : IGameObserver
 	public async Task WatchAsync(Game game)
 	{
 		var gameCreator = await _context.AppUser.FindAsync(game.AppUserID)!;
-		
-		int creatorGameCount = await _context.Game.Where(g => g.AppUserID == game.AppUserID).CountAsync();
+		int creatorGameCount = await _context.Game
+			.Where(g => g.AppUserID == game.AppUserID)
+			.CountAsync();
 		if (WatchGameCount(gameCreator!, game, creatorGameCount))
 		{
 			return;
 		}
 
-		int gameGuessCount = await _context.Guess.Where(g => g.GameID == game.ID).CountAsync();
+		int gameGuessCount = await _context.Guess
+			.Where(g => g.GameID == game.ID)
+			.CountAsync();
 		if (WatchGuessCount(gameCreator!, game, gameGuessCount))
 		{
 			return;

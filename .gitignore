@@ -1,9 +1,9 @@
+__*
+
 *.db*
 *.lnk
 .sonarqube
 
 bin
-helpers
 migrations
-notes
 obj
