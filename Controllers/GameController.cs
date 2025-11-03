@@ -46,6 +46,20 @@ public class GameController : ControllerBase
         return count;
     }
 
+    // GET: api/Game/Meta/Personal
+    [HttpGet("Meta/Personal"), Authorize]
+    public async Task<ActionResult<int>> GetPersonalMetadata(
+        int? competitionId,
+        string? name,
+        bool publicOnly = false)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var query = QueryRefiner.Games(
+            _context.Game, competitionId, userId, name, publicOnly);
+        var count = await query.CountAsync();
+        return count;
+    }
+
     // GET: api/Game/5
     [HttpGet("{id}")]
     public async Task<ActionResult<GameView>> GetGame(string id)
@@ -201,15 +215,15 @@ public class GameController : ControllerBase
         _context.Game.Add(game);
         await _context.SaveChangesAsync();
 
-        string creatorNick = await _context.AppUser
+        var creatorNick = await _context.AppUser
             .Where(u => u.Id == game.AppUserID)
             .Select(u => u.Nickname)
-            .FirstAsync()!;
+            .FirstAsync();
 
         return CreatedAtAction(
             nameof(GetGame),
             new { id = game.ID },
-            CreateGameView(game, creatorNick)
+            CreateGameView(game, creatorNick!)
         );
     }
 
