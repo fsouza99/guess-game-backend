@@ -222,7 +222,7 @@ public class GameController : ControllerBase
             CompetitionID = dto.CompetitionID,
             Creation = dateTimeNow,
             Description = dto.Description,
-            ID = DataGen.GenerateID(),
+            ID = DataGen.StringID(),
             MaxScore = GuessScorer.Evaluate(compData, compData, dto.ScoringRules),
             MaxGuessCount = dto.MaxGuessCount,
             Name = dto.Name,

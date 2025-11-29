@@ -1,4 +1,5 @@
 using App.Identity.Data;
+using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +12,37 @@ public static class CustomEndpoints
     // Adds extra endpoints to Identity, addressing particular needs in account management.
     public static void MapExtraIdentityEndpoints(this WebApplication app)
     {
-        app.MapPostNicknameEndpoint();
-        app.MapPostEmailEndpoint();
         app.MapGetProfileEndpoint();
-        app.MapPostLogoutEndpoint();
+        app.MapPostAppUser();
         app.MapPostDeleteAccountEndpoint();
+        app.MapPostEmailEndpoint();
+        app.MapPostLogoutEndpoint();
+        app.MapPostNicknameEndpoint();
+    }
+
+    // Allow the user to register an account using email, nickname and password.
+    public static void MapPostAppUser(this WebApplication app)
+    {
+        app.MapPost("/register/appuser", async (
+            [FromBody] AppUserDto dto,
+            UserManager<AppUser> userManager) =>
+        {
+            var user = new AppUser
+            {
+                Nickname = DataGen.AppUserNick(),
+                Email = dto.Email,
+                EmailConfirmed = true,
+                UserName = dto.Email
+            };
+
+            var result = await userManager.CreateAsync(user, dto.Password);
+            if (!result.Succeeded)
+            {
+                return Results.BadRequest(result.Errors);
+            }
+
+            return Results.Created($"/manage/profile", new { user.Id, user.Email });
+        });
     }
 
     // Allows the user to set his nickname.
