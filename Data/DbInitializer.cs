@@ -14,7 +14,7 @@ public class DbInitializer
     private readonly IServiceProvider _serviceProvider;
 
     // The password used by all added users.
-    private const string StdPass = "W8$14#4u$wnuCX0suO7#a@82i2754k$2";
+    private const string StdPass = "Passw0rd";
 
     // Reads JSON file and returns its content appropriately.
     private static JsonDocument ReadJsonFile(string file)
@@ -41,12 +41,14 @@ public class DbInitializer
             var competition = new Competition
             {
                 Active = obj.GetProperty("Active").GetBoolean(),
-                Creation = DateTime.Now,
-                Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
-                Description = obj.GetProperty("Description").GetString()!,
-                FormulaID = obj.GetProperty("FormulaID").GetInt32(),
                 ID = obj.GetProperty("ID").GetInt32(),
-                Name = obj.GetProperty("Name").GetString()!
+                FormulaID = obj.GetProperty("FormulaID").GetInt32(),
+                Name = obj.GetProperty("Name").GetString()!,
+                Description = obj.GetProperty("Description").GetString()!,
+                Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
+                Creation = obj.GetProperty("Creation").GetDateTime(),
+                Start = obj.GetProperty("Start").GetDateTime(),
+                End = obj.GetProperty("End").GetDateTime()
             };
             _context.Competition.Add(competition);
         }

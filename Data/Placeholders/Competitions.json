@@ -2,66 +2,69 @@
     {
         "Active": true,
         "Data": {
-            "A1": "HOL",
-            "A2": "SEN",
-            "B1": "ING",
-            "B2": "EUA",
-            "C1": "ARG",
-            "C2": "POL",
-            "D1": "FRA",
-            "D2": "AUS",
-            "E1": "JAP",
-            "E2": "ESP",
-            "F1": "MAR",
-            "F2": "CRO",
-            "G1": "BRA",
-            "G2": "SUI",
-            "H1": "POR",
-            "H2": "CRS",
+            "A1": "Holanda",
+            "A2": "Senegal",
+            "B1": "Inglaterra",
+            "B2": "Estados Unidos",
+            "C1": "Argentina",
+            "C2": "Polônia",
+            "D1": "França",
+            "D2": "Austrália",
+            "E1": "Japão",
+            "E2": "Espanha",
+            "F1": "Marrocos",
+            "F2": "Croácia",
+            "G1": "Brasil",
+            "G2": "Suíça",
+            "H1": "Portugal",
+            "H2": "Coreia do Sul",
             "R16": [
-                "HOL",
-                "EUA",
-                "ARG",
-                "AUS",
-                "JAP",
-                "CRO",
-                "BRA",
-                "CRS",
-                "ING",
-                "SEN",
-                "FRA",
-                "POL",
-                "MAR",
-                "ESP",
-                "POR",
-                "SUI"
+                "Argentina",
+                "Austrália",
+                "Brasil",
+                "Coreia do Sul",
+                "Croácia",
+                "Espanha",
+                "Estados Unidos",
+                "França",
+                "Holanda",
+                "Inglaterra",
+                "Japão",
+                "Marrocos",
+                "Polônia",
+                "Portugal",
+                "Senegal",
+                "Suíça"
             ],
             "QF": [
-                "HOL",
-                "ARG",
-                "CRO",
-                "BRA",
-                "ING",
-                "FRA",
-                "MAR",
-                "POR"
+                "Argentina",
+                "Brasil",
+                "Croácia",
+                "França",
+                "Holanda",
+                "Inglaterra",
+                "Marrocos",
+                "Portugal"
             ],
             "SF": [
-                "ARG",
-                "CRO",
-                "FRA",
-                "MAR"
+                "Argentina",
+                "Croácia",
+                "França",
+                "Marrocos"
             ],
             "FN": [
-                "ARG",
-                "FRA"
+                "Argentina",
+                "França"
             ],
-            "CH": "ARG"
+            "CH": "Argentina"
         },
         "Description": "The World Cup of 2022 held in Catar.",
         "FormulaID": 1,
         "ID": 1,
-        "Name": "Copa do Mundo 2022"
+        "Name": "Copa do Mundo 2022",
+        "Creation": "2020-01-01T00:00:00",
+        "Start": "2022-12-01T00:00:00",
+        "End": "2022-12-31T00:00:00"
     },
     {
         "Active": true,
@@ -124,6 +127,9 @@
         "Description": "The Club World Cup of 2025 held in USA.",
         "FormulaID": 1,
         "ID": 2,
-        "Name": "Copa do Mundo de Clubes 2025"
+        "Name": "Copa do Mundo de Clubes 2025",
+        "Creation": "2020-01-01T00:00:00",
+        "Start": "2025-06-12T00:00:00",
+        "End": "2025-07-12T00:00:00"
     }
 ]

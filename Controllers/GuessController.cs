@@ -52,7 +52,7 @@ public class GuessController : ControllerBase
         var query = QueryRefiner.Guesses(
             _context.Guess, gameId, name, offset, limit);
         var result = await query
-            .Select(g => CreateGuessView(g))
+            .Select(g => ViewFactory.Guess(g))
             .ToListAsync();
         return result;
     }
@@ -68,18 +68,18 @@ public class GuessController : ControllerBase
             return NotFound();
         }
 
-        return CreateGuessView(guess);
+        return ViewFactory.Guess(guess);
     }
 
     // POST: api/Guess
     [HttpPost]
-    public async Task<ActionResult<GuessView>> PostGuess(GuessDto guessDto)
+    public async Task<ActionResult<GuessView>> PostGuess(GuessDto dto)
     {
         // Check game.
         var game = await _context.Game
             .Include(g => g.Competition)
             .ThenInclude(c => c.Formula)
-            .FirstAsync(g => g.ID == guessDto.GameID);
+            .FirstAsync(g => g.ID == dto.GameID);
         if (game is null)
         {
             return NotFound();
@@ -87,7 +87,7 @@ public class GuessController : ControllerBase
 
         // Check passcode.
         if (!string.IsNullOrEmpty(game.Passcode) &&
-            guessDto.GamePasscode != game.Passcode)
+            dto.GamePasscode != game.Passcode)
         {
             return Unauthorized(MessageRepo.PasscodeError);
         }
@@ -111,17 +111,25 @@ public class GuessController : ControllerBase
 
         // Check conformance of "Data" with template.
         var dataTemp = JsonDocument.Parse(game.Competition.Formula.DataTemplate);
-        if (!JsonDataChecker.DataOnTemplate(dataTemp, guessDto.Data))
+        if (!JsonDataChecker.DataOnTemplate(dataTemp, dto.Data))
         {
             return BadRequest(MessageRepo.UnfitData);
         }
 
         // Create.
-        Guess guess = BuildGuess(guessDto, game, dateTimeNow);
+        var guess = new Guess
+        {
+            Creation = dateTimeNow,
+            Data = JsonSerializer.Serialize(dto.Data),
+            GameID = dto.GameID,
+            Name = dto.Name,
+            Number = game.NextGuessNumber++,
+            Score = GuessScorer.Evaluate(
+                dto.Data,
+                JsonDocument.Parse(game.Competition.Data),
+                JsonDocument.Parse(game.ScoringRules))
+        };
         _context.Guess.Add(guess);
-
-        // Update game.
-        game.NextGuessNumber++;
 
         // Save changes and notify game's owner of relevant events.
         await _context.SaveChangesAsync();
@@ -130,7 +138,7 @@ public class GuessController : ControllerBase
         return CreatedAtAction(
             nameof(GetGuess),
             new { gameID = guess.GameID, number = guess.Number },
-            CreateGuessView(guess));
+            ViewFactory.Guess(guess));
     }
 
     // DELETE: api/Guess/5/5
@@ -161,27 +169,5 @@ public class GuessController : ControllerBase
 
         return NoContent();
     }
-
-    private Guess BuildGuess(
-        GuessDto guessDto, Game game, DateTime creationDt) => new Guess
-    {
-        Creation = creationDt,
-        Data = JsonSerializer.Serialize(guessDto.Data.RootElement),
-        GameID = guessDto.GameID,
-        Name = guessDto.Name,
-        Number = game.NextGuessNumber,
-        Score = GuessScorer.Evaluate(
-            guessDto.Data,
-            JsonDocument.Parse(game.Competition.Data),
-            JsonDocument.Parse(game.ScoringRules))
-    };
-
-    private static GuessView CreateGuessView(Guess guess) => new GuessView(
-        guess.Creation,
-        JsonDocument.Parse(guess.Data),
-        guess.GameID,
-        guess.Name,
-        guess.Number,
-        guess.Score);
 }
 

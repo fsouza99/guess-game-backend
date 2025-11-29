@@ -9,7 +9,9 @@ namespace App.Models
         public bool Active { get; set; }
 
         public JsonDocument Data { get; set; } = default!;
-        
+
+        public DateTime End { get; set; }
+
         [Required]
         [StringLength(1024)]
         public string Description { get; set; } = default!;
@@ -19,5 +21,7 @@ namespace App.Models
         [Required]
         [StringLength(32)]
         public string Name { get; set; } = default!;
+
+        public DateTime Start { get; set; }
     }
 }

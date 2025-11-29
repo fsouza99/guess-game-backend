@@ -9,5 +9,5 @@ public class AppUser : IdentityUser
 {
 	// Identity usernames are used for authentication and cannot be so easily changed.
 	[StringLength(16)]
-	public string? Nickname { get; set; }
+	public string Nickname { get; set; } = string.Empty;
 }

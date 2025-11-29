@@ -39,7 +39,7 @@ public class CompetitionController : ControllerBase
 
     // GET: api/Competition
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CompetitionView>>> GetCompetitions(
+    public async Task<ActionResult<IEnumerable<SimpleCompetitionView>>> GetCompetitions(
         int? formulaId,
         string? name,
         bool activeOnly = false,
@@ -54,7 +54,7 @@ public class CompetitionController : ControllerBase
             offset,
             limit);
         var result = await query
-            .Select(c => CreateCompetitionView(c))
+            .Select(c => ViewFactory.SimpleCompetition(c))
             .ToListAsync();
         return result;
     }
@@ -69,13 +69,12 @@ public class CompetitionController : ControllerBase
             return NotFound();
         }
 
-        return CreateCompetitionView(competition);
+        return ViewFactory.Competition(competition);
     }
 
     // PUT: api/Competition/5
     [HttpPut("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
-    public async Task<IActionResult> PutCompetition(
-        int id, CompetitionDto competitionDto)
+    public async Task<IActionResult> PutCompetition(int id, CompetitionDto dto)
     {
         // Competition check.
         var competition = await _context.Competition.FindAsync(id);
@@ -85,11 +84,11 @@ public class CompetitionController : ControllerBase
         }
 
         // If "Data" is to be changed...
-        var rawData = JsonSerializer.Serialize(competitionDto.Data.RootElement);
+        var rawData = JsonSerializer.Serialize(dto.Data.RootElement);
         if (competition.Data != rawData)
         {
             // Updated data must be in accordance to template.
-            if (!CheckData(competitionDto))
+            if (!CheckData(dto))
             {
                 return BadRequest(MessageRepo.UnfitData);
             }
@@ -103,22 +102,24 @@ public class CompetitionController : ControllerBase
                 .Include(g => g.Guesses);
             foreach (var game in games)
             {
-                var gameSRules = JsonDocument.Parse(game.ScoringRules);
+                var sRules = JsonDocument.Parse(game.ScoringRules);
                 game.MaxScore = GuessScorer.Evaluate(
-                    competitionDto.Data, competitionDto.Data, gameSRules);
+                    dto.Data, dto.Data, sRules);
                 foreach (var guess in game.Guesses)
                 {
                     var guessData = JsonDocument.Parse(guess.Data);
                     guess.Score = GuessScorer.Evaluate(
-                        guessData, competitionDto.Data, gameSRules);
+                        guessData, dto.Data, sRules);
                 }
             }
         }
 
         // Other available updates.
-        competition.Active = competitionDto.Active;
-        competition.Description = competitionDto.Description;
-        competition.Name = competitionDto.Name;
+        competition.Active = dto.Active;
+        competition.Description = dto.Description;
+        competition.Name = dto.Name;
+        competition.Start = dto.Start;
+        competition.End = dto.End;
 
         _context.Entry(competition).State = EntityState.Modified;
 
@@ -141,30 +142,32 @@ public class CompetitionController : ControllerBase
     // POST: api/Competition
     [HttpPost, Authorize(Policy = PolicyReference.AccreditedOnly)]
     public async Task<ActionResult<CompetitionView>> PostCompetition(
-        CompetitionDto competitionDto)
+        CompetitionDto dto)
     {
         // Check formula.
-        var formula = await _context.Formula.FindAsync(competitionDto.FormulaID);
+        var formula = await _context.Formula.FindAsync(dto.FormulaID);
         if (formula is null)
         {
             return NotFound();
         }
 
         // Check conformance of "Data" with template.
-        if (!CheckData(competitionDto))
+        if (!CheckData(dto))
         {
             return BadRequest(MessageRepo.UnfitData);
         }
 
         // Creation.
-        var rawData = JsonSerializer.Serialize(competitionDto.Data.RootElement);
+        var rawData = JsonSerializer.Serialize(dto.Data.RootElement);
         var competition = new Competition
         {
             Creation = DateTime.Now,
             Data = rawData,
-            Description = competitionDto.Description,
-            FormulaID = competitionDto.FormulaID,
-            Name = competitionDto.Name
+            Description = dto.Description,
+            End = dto.End,
+            FormulaID = dto.FormulaID,
+            Name = dto.Name,
+            Start = dto.Start
         };
 
         _context.Competition.Add(competition);
@@ -173,7 +176,7 @@ public class CompetitionController : ControllerBase
         return CreatedAtAction(
             nameof(GetCompetition),
             new { id = competition.ID },
-            CreateCompetitionView(competition));
+            ViewFactory.Competition(competition));
     }
 
     // DELETE: api/Competition/5
@@ -192,29 +195,19 @@ public class CompetitionController : ControllerBase
         return NoContent();
     }
 
-    private static CompetitionView CreateCompetitionView(
-        Competition competition) => new CompetitionView(
-        competition.Active,
-        competition.Creation,
-        JsonDocument.Parse(competition.Data),
-        competition.Description,
-        competition.FormulaID,
-        competition.ID,
-        competition.Name);
-
     private bool CompetitionExists(int id)
     {
         return _context.Competition.Any(e => e.ID == id);
     }
 
-    private bool CheckData(CompetitionDto competitionDto)
+    private bool CheckData(CompetitionDto dto)
     {
         string rawDataTemp = _context.Formula
-            .Where(f => f.ID == competitionDto.FormulaID)
+            .Where(f => f.ID == dto.FormulaID)
             .Select(f => f.DataTemplate)
             .First();
         var dataTemp = JsonDocument.Parse(rawDataTemp);
-        return JsonDataChecker.DataOnTemplate(dataTemp, competitionDto.Data);
+        return JsonDataChecker.DataOnTemplate(dataTemp, dto.Data);
     }
 }
 

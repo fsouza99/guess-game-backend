@@ -10,9 +10,15 @@ namespace App.Models
         public DateTime Creation { get; set; }
 
         [Required]
+        [Comment("Real world data as a JSON string.")]
+        public string Data { get; set; } = default!; // JSON
+
+        [Required]
         [StringLength(1024)]
         public string Description { get; set; } = default!;
-        
+
+        public DateTime End { get; set; }
+
         public int FormulaID { get; set; }
 
         public int ID { get; set; } // PK
@@ -20,10 +26,8 @@ namespace App.Models
         [Required]
         [StringLength(32)]
         public string Name { get; set; } = default!;
-        
-        [Required]
-        [Comment("Real world data as a JSON string.")]
-        public string Data { get; set; } = default!; // JSON
+
+        public DateTime Start { get; set; }
 
         // Navigation
 

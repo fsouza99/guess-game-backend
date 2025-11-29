@@ -44,7 +44,7 @@ public class FormulaController : ControllerBase
         var query = QueryRefiner.Formulas(
             _context.Formula, name, offset, limit);
         var result = await query
-            .Select(f => CreateFormulaView(f))
+            .Select(f => ViewFactory.Formula(f))
             .ToListAsync();
         return result;
     }
@@ -59,12 +59,12 @@ public class FormulaController : ControllerBase
             return NotFound();
         }
 
-        return CreateFormulaView(formula);
+        return ViewFactory.Formula(formula);
     }
 
     // PUT: api/Formula/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutFormula(int id, FormulaDto formulaDto)
+    public async Task<IActionResult> PutFormula(int id, FormulaDto dto)
     {
         // Formula check.
         var formula = await _context.Formula.FindAsync(id);
@@ -74,8 +74,8 @@ public class FormulaController : ControllerBase
         }
 
         // Available updates.
-        formula.Description = formulaDto.Description;
-        formula.Name = formulaDto.Name;
+        formula.Description = dto.Description;
+        formula.Name = dto.Name;
 
         _context.Entry(formula).State = EntityState.Modified;
 
@@ -97,28 +97,26 @@ public class FormulaController : ControllerBase
 
     // POST: api/Formula
     [HttpPost]
-    public async Task<ActionResult<FormulaView>> PostFormula(
-        FormulaDto formulaDto)
+    public async Task<ActionResult<FormulaView>> PostFormula(FormulaDto dto)
     {
         // Check template conformance.
-        if (!JsonDataChecker.DataTemplate(formulaDto.DataTemplate) ||
-            !JsonDataChecker.ScoringRulesTemplate(
-                formulaDto.ScoringRulesTemplate))
+        if (!JsonDataChecker.DataTemplate(dto.DataTemplate)
+            || !JsonDataChecker.ScoringRulesTemplate(dto.ScoringRulesTemplate))
         {
             return BadRequest(MessageRepo.BadTemplate);
         }
 
         // Creation.
         var rawDataTemp = JsonSerializer.Serialize(
-            formulaDto.DataTemplate.RootElement);
+            dto.DataTemplate.RootElement);
         var rawSRulesTemp = JsonSerializer.Serialize(
-            formulaDto.ScoringRulesTemplate.RootElement);
+            dto.ScoringRulesTemplate.RootElement);
         var formula = new Formula
         {
             Creation = DateTime.Now,
             DataTemplate = rawDataTemp,
-            Description = formulaDto.Description,
-            Name = formulaDto.Name,
+            Description = dto.Description,
+            Name = dto.Name,
             ScoringRulesTemplate = rawSRulesTemp
         };
 
@@ -128,7 +126,7 @@ public class FormulaController : ControllerBase
         return CreatedAtAction(
             nameof(GetFormula),
             new { id = formula.ID },
-            CreateFormulaView(formula));
+            ViewFactory.Formula(formula));
     }
 
     // DELETE: api/Formula/5
@@ -146,15 +144,6 @@ public class FormulaController : ControllerBase
 
         return NoContent();
     }
-
-    private static FormulaView CreateFormulaView(
-        Formula formula) => new FormulaView(
-        formula.Creation,
-        JsonDocument.Parse(formula.DataTemplate),
-        formula.Description,
-        formula.ID,
-        formula.Name,
-        JsonDocument.Parse(formula.ScoringRulesTemplate));
 
     private bool FormulaExists(int id)
     {

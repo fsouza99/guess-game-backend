@@ -64,21 +64,21 @@ public class GameController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<GameView>> GetGame(string id)
     {
-        var gameView = await _context.Game
-            .Where(g => g.ID == id)
-            .Select(g => CreateGameView(g, g.AppUser.Nickname!))
-            .FirstAsync();
-        if (gameView is null)
+        var game = await _context.Game
+            .Include(g => g.AppUser)
+            .Include(g => g.Competition)
+            .FirstOrDefaultAsync(g => g.ID == id);
+        if (game is null)
         {
             return NotFound();
         }
 
-        return gameView;
+        return ViewFactory.Game(game);
     }
 
     // GET: api/Game
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<GameView>>> GetGames(
+    public async Task<ActionResult<IEnumerable<SimpleGameView>>> GetGames(
         int? competitionId,
         string? appUserId,
         string? name,
@@ -95,14 +95,16 @@ public class GameController : ControllerBase
             offset,
             limit);
         var result = await query
-            .Select(g => CreateGameView(g, g.AppUser.Nickname!))
+            .Include(g => g.Competition)
+            .Include(g => g.AppUser)
+            .Select(g => ViewFactory.SimpleGame(g))
             .ToListAsync();
         return result;
     }
 
     // GET: api/Game/Personal
     [HttpGet("Personal"), Authorize]
-    public async Task<ActionResult<IEnumerable<GameView>>> GetPersonalGames(
+    public async Task<ActionResult<IEnumerable<SimpleGameView>>> GetPersonalGames(
         int? competitionId,
         string? name,
         bool publicOnly = false,
@@ -119,14 +121,16 @@ public class GameController : ControllerBase
             offset,
             limit);
         var result = await query
-            .Select(g => CreateGameView(g, userId))
+            .Include(g => g.Competition)
+            .Include(g => g.AppUser)
+            .Select(g => ViewFactory.SimpleGame(g))
             .ToListAsync();
         return result;
     }
 
     // PUT: api/Game/5
     [HttpPut("{id}"), Authorize]
-    public async Task<IActionResult> PutGame(string id, GameDto gameDto)
+    public async Task<IActionResult> PutGame(string id, GameDto dto)
     {
         // Check game.
         var game = await _context.Game.FindAsync(id);
@@ -145,19 +149,19 @@ public class GameController : ControllerBase
 
         // If new, submission deadline must be either "null" or at least 5 min in future.
         var dateTimeNow = DateTime.Now;
-        if (gameDto.SubsDeadline != game.SubsDeadline &&
-            gameDto.SubsDeadline is not null &&
-            gameDto.SubsDeadline < dateTimeNow.AddMinutes(5))
+        if (dto.SubsDeadline != game.SubsDeadline
+            && dto.SubsDeadline is not null
+            && dto.SubsDeadline < dateTimeNow.AddMinutes(5))
         {
             return BadRequest(MessageRepo.TooEarlySubsDeadline);
         }
 
         // Available updates.
-        game.Description = gameDto.Description;
-        game.MaxGuessCount = gameDto.MaxGuessCount;
-        game.Name = gameDto.Name;
-        game.Passcode = gameDto.Passcode;
-        game.SubsDeadline = gameDto.SubsDeadline;
+        game.Description = dto.Description;
+        game.MaxGuessCount = dto.MaxGuessCount;
+        game.Name = dto.Name;
+        game.Passcode = dto.Passcode;
+        game.SubsDeadline = dto.SubsDeadline;
 
         _context.Entry(game).State = EntityState.Modified;
 
@@ -179,12 +183,12 @@ public class GameController : ControllerBase
 
     // POST: api/Game
     [HttpPost, Authorize]
-    public async Task<ActionResult<GameView>> PostGame(GameDto gameDto)
+    public async Task<ActionResult<GameView>> PostGame(GameDto dto)
     {
         // Check competition.
         var competition = await _context.Competition
             .Include(c => c.Formula)
-            .FirstAsync(c => c.ID == gameDto.CompetitionID);
+            .FirstAsync(c => c.ID == dto.CompetitionID);
         if (competition is null)
         {
             return NotFound();
@@ -196,8 +200,8 @@ public class GameController : ControllerBase
 
         // Check whether submission deadline is at least 5 min in future.
         var dateTimeNow = DateTime.Now;
-        if (gameDto.SubsDeadline is not null &&
-            gameDto.SubsDeadline < dateTimeNow.AddMinutes(5))
+        if (dto.SubsDeadline is not null &&
+            dto.SubsDeadline < dateTimeNow.AddMinutes(5))
         {
             return BadRequest(MessageRepo.TooEarlySubsDeadline);
         }
@@ -206,24 +210,35 @@ public class GameController : ControllerBase
         var sRulesTemp = JsonDocument.Parse(
             competition.Formula.ScoringRulesTemplate);
         if (!JsonDataChecker.ScoringRulesOnTemplate(
-            sRulesTemp, gameDto.ScoringRules))
+            sRulesTemp, dto.ScoringRules))
         {
             return BadRequest(MessageRepo.UnfitData);
         }
 
-        Game game = BuildGame(gameDto, competition, dateTimeNow);
+        var compData = JsonDocument.Parse(competition.Data);
+        var game = new Game
+        {
+            AppUserID = User.FindFirstValue(ClaimTypes.NameIdentifier)!,
+            CompetitionID = dto.CompetitionID,
+            Creation = dateTimeNow,
+            Description = dto.Description,
+            ID = DataGen.GenerateID(),
+            MaxScore = GuessScorer.Evaluate(compData, compData, dto.ScoringRules),
+            MaxGuessCount = dto.MaxGuessCount,
+            Name = dto.Name,
+            Passcode = dto.Passcode,
+            ScoringRules = JsonSerializer.Serialize(dto.ScoringRules),
+            SubsDeadline = dto.SubsDeadline
+        };
         _context.Game.Add(game);
         await _context.SaveChangesAsync();
 
-        var creatorNick = await _context.AppUser
-            .Where(u => u.Id == game.AppUserID)
-            .Select(u => u.Nickname)
-            .FirstAsync();
+        await _context.AppUser.FindAsync(game.AppUserID);
 
         return CreatedAtAction(
             nameof(GetGame),
             new { id = game.ID },
-            CreateGameView(game, creatorNick!)
+            ViewFactory.Game(game)
         );
     }
 
@@ -250,43 +265,6 @@ public class GameController : ControllerBase
 
         return NoContent();
     }
-
-    private Game BuildGame(
-        GameDto gameDto, Competition competition, DateTime creationDt)
-    {
-        var compData = JsonDocument.Parse(competition.Data);
-        return new Game
-        {
-            AppUserID = User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-            CompetitionID = gameDto.CompetitionID,
-            Creation = creationDt,
-            Description = gameDto.Description,
-            ID = DataGen.GenerateID(),
-            MaxScore = GuessScorer.Evaluate(
-                compData, compData, gameDto.ScoringRules),
-            MaxGuessCount = gameDto.MaxGuessCount,
-            Name = gameDto.Name,
-            Passcode = gameDto.Passcode,
-            ScoringRules = JsonSerializer.Serialize(
-                gameDto.ScoringRules.RootElement),
-            SubsDeadline = gameDto.SubsDeadline
-        };
-    }
-
-    private static GameView CreateGameView(
-        Game game, string creatorNick) => new GameView(
-        game.CompetitionID,
-        game.Creation,
-        game.AppUserID,
-        creatorNick,
-        game.Description,
-        game.ID,
-        game.MaxGuessCount,
-        game.MaxScore,
-        game.Name,
-        game.Passcode,
-        JsonDocument.Parse(game.ScoringRules),
-        game.SubsDeadline);
 
     private bool GameExists(string id)
     {

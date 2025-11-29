@@ -1,18 +1,14 @@
 using App.Identity.Data;
-using System.Text.Json;
 
 namespace App.Models;
 
-public record GameView(
+public record SimpleGameView(
     string ID,
     SimpleCompetitionView Competition,
     string Name,
     SimpleAppUserView Creator,
-    string Description,
-    JsonDocument ScoringRules,
     DateTime Creation,
     int MaxGuessCount,
-    int MaxScore,
     string? Passcode,
     DateTime? SubsDeadline);
 
