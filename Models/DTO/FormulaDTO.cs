@@ -10,12 +10,10 @@ namespace App.Models
         
         [Required]
         [StringLength(1024)]
-        public string Description { get; set; } = default!;
+        public string Description { get; set; } = string.Empty;
         
         [Required]
         [StringLength(32)]
-        public string Name { get; set; } = default!;
-
-        public JsonDocument ScoringRulesTemplate { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
     }
 }

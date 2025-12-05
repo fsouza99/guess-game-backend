@@ -8,236 +8,179 @@ namespace App.StaticTools;
 /// </summary>
 public static class JsonDataChecker
 {
-	private static bool ElementOnDataTemplate(JsonElement template, JsonElement element)
-	{
-		// Element's type must match the template's.
-		if (template.ValueKind != element.ValueKind)
-		{
-			return false;
-		}
+    /// <summary>
+    /// Check whether an element is in accordance with data template.
+    /// The template element is expected to express the size of the array of strings
+    /// the element should be.
+    /// </summary>
+    private static bool ElementOnTemplate(
+        JsonElement element, JsonElement template)
+    {
+        int expectedSize = template.GetInt32();
 
-		// If element is an array...
-		if (template.ValueKind == JsonValueKind.Array)
-		{
-			// Check array size.
-			int size = template.GetArrayLength();
-			if (size != element.GetArrayLength())
-			{
-				return false;
-			}
-			
-			// Check inner elements.
-			for (int i = 0; i < size; i++)
-			{
-				if (template[i].ValueKind != element[i].ValueKind)
-				{
-					return false;
-				}
-			}
-		}
+        // If template expects a string, check it.
+        if (expectedSize == 1)
+        {
+            return element.ValueKind == JsonValueKind.String;
+        }
 
-		return true;
-	}
+        // Otherwise, check if element is an array.
+        if (element.ValueKind != JsonValueKind.Array)
+        {
+            return false;
+        }
 
-	private static bool IsNullObjUndef(JsonElement element)
-	{
-		return (
-			element.ValueKind == JsonValueKind.Null ||
-			element.ValueKind == JsonValueKind.Object ||
-			element.ValueKind == JsonValueKind.Undefined
-			);
-	}
+        // Check array size.
+        int elementArraySize = element.GetArrayLength();
+        if (expectedSize != elementArraySize)
+        {
+            return false;
+        }
 
-	private static bool IsLimitedInt32(JsonElement element, int min, int max)
-	{
-		int valueInt;
-		try
-		{
-			valueInt = element.GetInt32();
-		}
-		catch (Exception)
-		{
-			return false;
-		}
-		return (valueInt >= min && valueInt <= max);
-	}
+        // Make sure inner elements are strings.
+        for (int i = 0; i < elementArraySize; i++)
+        {
+            if (element[i].ValueKind != JsonValueKind.String)
+            {
+                return false;
+            }
+        }
 
-	/// <summary>
-	/// Check the conformance of JSON data with a template.
-	/// The JSON of the template is expected to be valid.
-	/// </summary>
-	public static bool DataOnTemplate(JsonDocument template, JsonDocument data)
-	{
-		JsonElement templateRoot = template.RootElement;
-		JsonElement dataRoot = data.RootElement;
+        return true;
+    }
 
-		// Data must be an object.
-		if (dataRoot.ValueKind != JsonValueKind.Object)
-		{
-			return false;
-		}
+    /// <summary>
+    /// Check whether an element is an integer within an interval.
+    /// </summary>
+    private static bool IsLimitedInt32(JsonElement element, int min, int max)
+    {
+        if (element.ValueKind == JsonValueKind.Number
+            && element.TryGetInt32(out int value))
+        {
+            return value >= min && value <= max;
+        }
+        return false;
+    }
 
-		var templateProperties = templateRoot.EnumerateObject();
-		var dataProperties = dataRoot.EnumerateObject();
+    /// <summary>
+    /// Check the conformance of data with a template.
+    /// The JSON of the template is expected to be valid.
+    /// </summary>
+    public static bool DataOnTemplate(JsonDocument data, JsonDocument template)
+    {
+        JsonElement templateRoot = template.RootElement;
+        JsonElement dataRoot = data.RootElement;
 
-		// Check the number of properties.
-		if (templateProperties.Count() != dataProperties.Count())
-		{
-			return false;
-		}
+        // Data must be an object.
+        if (dataRoot.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
 
-		// Every data property must exist in template.
-		var propNames = templateProperties.Select(p => p.Name);
-		foreach (string propName in propNames)
-		{
-			JsonElement templateElement = templateRoot.GetProperty(propName), dataElement;
-			try
-			{
-				dataElement = dataRoot.GetProperty(propName);
-			}
-			catch (KeyNotFoundException)
-			{
-				return false;
-			}
+        var templateProperties = templateRoot.EnumerateObject();
+        var dataProperties = dataRoot.EnumerateObject();
 
-			// Check element.
-			if (!ElementOnDataTemplate(templateElement, dataElement))
-			{
-				return false;
-			}
-		}
+        // Check the number of properties.
+        if (templateProperties.Count() != dataProperties.Count())
+        {
+            return false;
+        }
 
-		return true;
-	}
+        // Every data property must exist in template.
+        var propNames = templateProperties.Select(p => p.Name);
+        foreach (string propName in propNames)
+        {
+            if (!dataRoot.TryGetProperty(propName, out JsonElement dataElement))
+            {
+                return false;
+            }
 
-	/// <summary>
-	/// Validates JSON data representing a template for competition data.
-	/// The JSON data must include a non-empty root node.
-	/// An inner value cannot be an object, null or undefined.
-	/// If an inner value is an array, it can only contain strings.
-	/// </summary>
-	public static bool DataTemplate(JsonDocument template)
-	{
-		JsonElement templateRoot = template.RootElement;
+            JsonElement templateElement = templateRoot.GetProperty(propName);
+            if (!ElementOnTemplate(dataElement, templateElement))
+            {
+                return false;
+            }
+        }
 
-		// Template must be an object.
-		if (templateRoot.ValueKind != JsonValueKind.Object)
-		{
-			return false;
-		}
+        return true;
+    }
 
-		// Template must contain at least 1 element.
-		var templateProperties = templateRoot.EnumerateObject();
-		if (!templateProperties.Any())
-		{
-			return false;
-		}
+    /// <summary>
+    /// Validates JSON data representing a template for competition data.
+    /// The JSON data must include a non-empty root node.
+    /// Values can only be integers in the [1,100] interval.
+    /// </summary>
+    public static bool DataTemplate(JsonDocument template)
+    {
+        JsonElement templateRoot = template.RootElement;
 
-		var valueElements = templateProperties.Select(p => p.Value);
-		foreach (JsonElement element in valueElements)
-		{
-			// A property cannot be of type "null", "object" nor "undefined".
-			if (IsNullObjUndef(element))
-			{
-				return false;
-			}
+        // Template must be an object.
+        if (templateRoot.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
 
-			// An array can only contain strings.
-			if (element.ValueKind == JsonValueKind.Array)
-			{
-				var elements = element.EnumerateArray();
-				foreach (var item in elements)
-				{
-					if (item.ValueKind != JsonValueKind.String)
-					{
-						return false;
-					}
-				}
-			}
-		}
+        // Template must contain at least 1 element.
+        var templateProperties = templateRoot.EnumerateObject();
+        if (!templateProperties.Any())
+        {
+            return false;
+        }
 
-		return true;
-	}
+        // Values can only be limited integers.
+        var valueElements = templateProperties.Select(p => p.Value);
+        foreach (JsonElement element in valueElements)
+        {
+            if (!IsLimitedInt32(element, 1, 100))
+            {
+                return false;
+            }
+        }
 
-	/// <summary>
-	/// Validates JSON data representing a template for scoring rules.
-	/// The JSON data must include a non-empty root node.
-	/// An inner value can only be an integer in [0, 1000] interval.
-	/// </summary>
-	public static bool ScoringRulesTemplate(JsonDocument template)
-	{
-		JsonElement templateRoot = template.RootElement;
+        return true;
+    }
 
-		// Template must be an object.
-		if (templateRoot.ValueKind != JsonValueKind.Object)
-		{
-			return false;
-		}
+    /// <summary>
+    /// Checks the conformance of data representing scoring rules with the
+    /// data template expected by a formula.
+    /// The JSON of the template is expected to be valid.
+    /// Values can only be integers in the [0,1000] interval.
+    /// </summary>
+    public static bool ScoringRulesOnTemplate(
+        JsonDocument rules, JsonDocument template)
+    {
+        JsonElement rulesRoot = rules.RootElement;
+        JsonElement templateRoot = template.RootElement;
 
-		// Template must contain at least 1 element.
-		var templateProperties = templateRoot.EnumerateObject();
-		if (!templateProperties.Any())
-		{
-			return false;
-		}
+        // Root must be an object.
+        if (rulesRoot.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
 
-		// An element must be an integer in [0, 1000].
-		var valueElements = templateProperties.Select(p => p.Value);
-		foreach (JsonElement element in valueElements)
-		{
-			if (!IsLimitedInt32(element, 0, 1000))
-			{
-				return false;
-			}
-		}
+        var templateProperties = templateRoot.EnumerateObject();
+        var rulesProperties = rulesRoot.EnumerateObject();
 
-		return true;
-	}
+        // Check the number of properties.
+        if (templateProperties.Count() != rulesProperties.Count())
+        {
+            return false;
+        }
 
-	/// <summary>
-	/// Checks the conformance of JSON data representing scoring rules with a template.
-	/// The JSON of the template is expected to be valid.
-	/// Number values must be in interval determined by parameters (min, max).
-	/// </summary>
-	public static bool ScoringRulesOnTemplate(JsonDocument template, JsonDocument data, int min=0, int max=1000)
-	{
-		JsonElement templateRoot = template.RootElement;
-		JsonElement dataRoot = data.RootElement;
+        // Every data property must exist in template.
+        var propNames = templateProperties.Select(p => p.Name);
+        foreach (string propName in propNames)
+        {
+            if (!rulesRoot.TryGetProperty(propName, out JsonElement ruleElement))
+            {
+                return false;
+            }
+            if (!IsLimitedInt32(ruleElement, 0, 1000))
+            {
+                return false;
+            }
+        }
 
-		// Data must be an object.
-		if (dataRoot.ValueKind != JsonValueKind.Object)
-		{
-			return false;
-		}
-
-		var templateProperties = templateRoot.EnumerateObject();
-		var dataProperties = dataRoot.EnumerateObject();
-
-		// Check the number of properties.
-		if (templateProperties.Count() != dataProperties.Count())
-		{
-			return false;
-		}
-
-		// Every data property must exist in template.
-		var propNames = templateProperties.Select(p => p.Name);
-		foreach (string propName in propNames)
-		{
-			JsonElement dataElement;
-			try
-			{
-				dataElement = dataRoot.GetProperty(propName);
-			}
-			catch (KeyNotFoundException)
-			{
-				return false;
-			}
-			if (!IsLimitedInt32(dataElement, 0, 1000))
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
+        return true;
+    }
 }

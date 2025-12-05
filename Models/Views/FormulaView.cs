@@ -7,6 +7,5 @@ public record FormulaView(
     string Name,
     string Description,
     DateTime Creation,
-    JsonDocument DataTemplate,
-    JsonDocument ScoringRulesTemplate);
+    JsonDocument DataTemplate);
 

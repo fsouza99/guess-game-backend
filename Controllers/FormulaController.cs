@@ -100,8 +100,7 @@ public class FormulaController : ControllerBase
     public async Task<ActionResult<FormulaView>> PostFormula(FormulaDto dto)
     {
         // Check template conformance.
-        if (!JsonDataChecker.DataTemplate(dto.DataTemplate)
-            || !JsonDataChecker.ScoringRulesTemplate(dto.ScoringRulesTemplate))
+        if (!JsonDataChecker.DataTemplate(dto.DataTemplate))
         {
             return BadRequest(MessageRepo.BadTemplate);
         }
@@ -109,15 +108,12 @@ public class FormulaController : ControllerBase
         // Creation.
         var rawDataTemp = JsonSerializer.Serialize(
             dto.DataTemplate.RootElement);
-        var rawSRulesTemp = JsonSerializer.Serialize(
-            dto.ScoringRulesTemplate.RootElement);
         var formula = new Formula
         {
             Creation = DateTime.Now,
             DataTemplate = rawDataTemp,
             Description = dto.Description,
-            Name = dto.Name,
-            ScoringRulesTemplate = rawSRulesTemp
+            Name = dto.Name
         };
 
         _context.Formula.Add(formula);

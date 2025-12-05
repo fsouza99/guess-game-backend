@@ -65,8 +65,7 @@ public class DbInitializer
                 DataTemplate = JsonSerializer.Serialize(obj.GetProperty("DataTemplate")),
                 Description = obj.GetProperty("Description").GetString()!,
                 ID = obj.GetProperty("ID").GetInt32(),
-                Name = obj.GetProperty("Name").GetString()!,
-                ScoringRulesTemplate = JsonSerializer.Serialize(obj.GetProperty("ScoringRulesTemplate"))
+                Name = obj.GetProperty("Name").GetString()!
             };
             _context.Formula.Add(formula);
         }

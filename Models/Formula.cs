@@ -9,22 +9,16 @@ namespace App.Models
 
         [Required]
         [StringLength(1024)]
-        public string Description { get; set; } = default!;
-        
+        public string Description { get; set; } = string.Empty;
+
         public int ID { get; set; } // PK
 
         [Required]
         [StringLength(32)]
-        public string Name { get; set; } = default!;
-
-        // JSON Templates for reference
+        public string Name { get; set; } = string.Empty;
 
         [Required]
-        [Comment("A JSON string template for guesses and real data about competitions that use this format.")]
-        public string DataTemplate { get; set; } = default!;
-
-        [Required]
-        [Comment("A JSON string template for criteria used to evaluate guess data.")]
-        public string ScoringRulesTemplate { get; set; } = default!;
+        [Comment("A JSON string, data template for competitions that use the current formula.")]
+        public string DataTemplate { get; set; } = string.Empty;
     }
 }

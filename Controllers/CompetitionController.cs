@@ -158,11 +158,10 @@ public class CompetitionController : ControllerBase
         }
 
         // Creation.
-        var rawData = JsonSerializer.Serialize(dto.Data.RootElement);
         var competition = new Competition
         {
             Creation = DateTime.Now,
-            Data = rawData,
+            Data = JsonSerializer.Serialize(dto.Data.RootElement),
             Description = dto.Description,
             End = dto.End,
             FormulaID = dto.FormulaID,
@@ -207,7 +206,7 @@ public class CompetitionController : ControllerBase
             .Select(f => f.DataTemplate)
             .First();
         var dataTemp = JsonDocument.Parse(rawDataTemp);
-        return JsonDataChecker.DataOnTemplate(dataTemp, dto.Data);
+        return JsonDataChecker.DataOnTemplate(dto.Data, dataTemp);
     }
 }
 

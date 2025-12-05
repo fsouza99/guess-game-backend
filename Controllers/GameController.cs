@@ -207,10 +207,9 @@ public class GameController : ControllerBase
         }
 
         // Check conformance of "ScoringRules" with template.
-        var sRulesTemp = JsonDocument.Parse(
-            competition.Formula.ScoringRulesTemplate);
+        var dataTemp = JsonDocument.Parse(competition.Formula.DataTemplate);
         if (!JsonDataChecker.ScoringRulesOnTemplate(
-            sRulesTemp, dto.ScoringRules))
+            dto.ScoringRules, dataTemp))
         {
             return BadRequest(MessageRepo.UnfitData);
         }

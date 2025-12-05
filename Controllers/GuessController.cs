@@ -111,7 +111,7 @@ public class GuessController : ControllerBase
 
         // Check conformance of "Data" with template.
         var dataTemp = JsonDocument.Parse(game.Competition.Formula.DataTemplate);
-        if (!JsonDataChecker.DataOnTemplate(dataTemp, dto.Data))
+        if (!JsonDataChecker.DataOnTemplate(dto.Data, dataTemp))
         {
             return BadRequest(MessageRepo.UnfitData);
         }

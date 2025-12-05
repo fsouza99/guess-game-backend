@@ -2,23 +2,27 @@
     {
         "Active": true,
         "Data": {
-            "A1": "Holanda",
-            "A2": "Senegal",
-            "B1": "Inglaterra",
-            "B2": "Estados Unidos",
-            "C1": "Argentina",
-            "C2": "Polônia",
-            "D1": "França",
-            "D2": "Austrália",
-            "E1": "Japão",
-            "E2": "Espanha",
-            "F1": "Marrocos",
-            "F2": "Croácia",
-            "G1": "Brasil",
-            "G2": "Suíça",
-            "H1": "Portugal",
-            "H2": "Coreia do Sul",
-            "R16": [
+            "P1": [
+                "Holanda",
+                "Inglaterra",
+                "Argentina",
+                "França",
+                "Japão",
+                "Marrocos",
+                "Brasil",
+                "Portugal"
+            ],
+            "P2": [
+                "Senegal",
+                "Estados Unidos",
+                "Polônia",
+                "Austrália",
+                "Espanha",
+                "Croácia",
+                "Suíça",
+                "Coreia do Sul"
+            ],
+            "16": [
                 "Argentina",
                 "Austrália",
                 "Brasil",
@@ -36,7 +40,7 @@
                 "Senegal",
                 "Suíça"
             ],
-            "QF": [
+            "8": [
                 "Argentina",
                 "Brasil",
                 "Croácia",
@@ -46,17 +50,17 @@
                 "Marrocos",
                 "Portugal"
             ],
-            "SF": [
+            "4": [
                 "Argentina",
                 "Croácia",
                 "França",
                 "Marrocos"
             ],
-            "FN": [
+            "2": [
                 "Argentina",
                 "França"
             ],
-            "CH": "Argentina"
+            "1": "Argentina"
         },
         "Description": "The World Cup of 2022 held in Catar.",
         "FormulaID": 1,
@@ -69,23 +73,27 @@
     {
         "Active": true,
         "Data": {
-            "A1": "text",
-            "A2": "text",
-            "B1": "text",
-            "B2": "text",
-            "C1": "text",
-            "C2": "text",
-            "D1": "text",
-            "D2": "text",
-            "E1": "text",
-            "E2": "text",
-            "F1": "text",
-            "F2": "text",
-            "G1": "text",
-            "G2": "text",
-            "H1": "text",
-            "H2": "text",
-            "R16": [
+            "P1": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "P2": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "16": [
                 "text",
                 "text",
                 "text",
@@ -103,7 +111,7 @@
                 "text",
                 "text"
             ],
-            "QF": [
+            "8": [
                 "text",
                 "text",
                 "text",
@@ -112,24 +120,146 @@
                 "text",
                 "text"
             ],
-            "SF": [
+            "4": [
                 "text",
                 "text",
                 "text",
                 "text"
             ],
-            "FN": [
+            "2": [
                 "text",
                 "text"
             ],
-            "CH": "text"
+            "1": "text"
         },
         "Description": "The Club World Cup of 2025 held in USA.",
         "FormulaID": 1,
         "ID": 2,
         "Name": "Copa do Mundo de Clubes 2025",
-        "Creation": "2020-01-01T00:00:00",
-        "Start": "2025-06-12T00:00:00",
-        "End": "2025-07-12T00:00:00"
+        "Creation": "2022-01-01T00:00:00",
+        "Start": "2022-11-20T00:00:00",
+        "End": "2022-12-18T23:59:59"
+    },
+    {
+        "Active": true,
+        "Data": {
+            "P1": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "P2": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "P3": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "32": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "16": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "8": [
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "4": [
+                "text",
+                "text",
+                "text",
+                "text"
+            ],
+            "2": [
+                "text",
+                "text"
+            ],
+            "1": "text"
+        },
+        "Description": "The World Cup of 2026 held in USA, Canada and Mexico.",
+        "FormulaID": 2,
+        "ID": 3,
+        "Name": "Copa do Mundo 2026",
+        "Creation": "2025-11-29T00:00:00",
+        "Start": "2026-06-11T00:00:00",
+        "End": "2026-07-19T23:59:59"
     }
 ]

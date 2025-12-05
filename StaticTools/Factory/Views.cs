@@ -32,8 +32,7 @@ public static class ViewFactory
         formula.Name,
         formula.Description,
         formula.Creation,
-        JsonDocument.Parse(formula.DataTemplate),
-        JsonDocument.Parse(formula.ScoringRulesTemplate));
+        JsonDocument.Parse(formula.DataTemplate));
 
     public static GuessView Guess(Guess guess) => new GuessView(
         guess.Creation,
