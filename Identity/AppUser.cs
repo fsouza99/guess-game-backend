@@ -7,7 +7,7 @@ namespace App.Identity.Data;
 [Index(nameof(Nickname), IsUnique = true)]
 public class AppUser : IdentityUser
 {
-	[Required]
-	[StringLength(16)]
-	public string Nickname { get; set; } = string.Empty;
+    [Required]
+    [StringLength(16)]
+    public string Nickname { get; set; } = string.Empty;
 }

@@ -15,7 +15,7 @@ namespace App.Models
         [Required]
         [StringLength(1024)]
         public string Description { get; set; } = default!;
-        
+
         public int FormulaID { get; set; }
 
         [Required]

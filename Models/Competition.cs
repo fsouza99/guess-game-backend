@@ -11,21 +11,21 @@ namespace App.Models
 
         [Required]
         [Comment("Real world data as a JSON string.")]
-        public string Data { get; set; } = default!; // JSON
+        public string Data { get; set; } = string.Empty;
 
         [Required]
         [StringLength(1024)]
-        public string Description { get; set; } = default!;
+        public string Description { get; set; } = string.Empty;
 
         public DateTime End { get; set; }
 
         public int FormulaID { get; set; }
 
-        public int ID { get; set; } // PK
+        public int ID { get; set; }
 
         [Required]
         [StringLength(32)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         public DateTime Start { get; set; }
 

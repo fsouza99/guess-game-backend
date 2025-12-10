@@ -7,20 +7,20 @@ namespace App.Models
     public class Game
     {
         [Required]
-        public string AppUserID { get; set; } = default!; // FK
+        public string AppUserID { get; set; } = string.Empty;
 
-        public int CompetitionID { get; set; } // FK
+        public int CompetitionID { get; set; }
 
         public DateTime Creation { get; set; }
-        
+
         [Required]
         [StringLength(256)]
-        public string Description { get; set; } = default!;
-        
+        public string Description { get; set; } = string.Empty;
+
         [Required]
         [StringLength(11)]
-        public string ID { get; set; } = default!; // PK
-        
+        public string ID { get; set; } = string.Empty;
+
         [Range(1, 100)]
         public int MaxGuessCount { get; set; }
 
@@ -29,10 +29,10 @@ namespace App.Models
 
         [Comment("Avoid giving a guess the same number as another previously deleted one.")]
         public int NextGuessNumber { get; set; } = 1;
-        
+
         [Required]
         [StringLength(32)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         [StringLength(8)]
         [Comment("A passcode might be necessary to enter the game.")]
@@ -40,8 +40,8 @@ namespace App.Models
 
         [Required]
         [Comment("Scoring rules as a JSON string.")]
-        public string ScoringRules { get; set; } = default!; // JSON
-        
+        public string ScoringRules { get; set; } = string.Empty;
+
         [Comment("If set, new guesses will be accepted until this datetime.")]
         public DateTime? SubsDeadline { get; set; }
 

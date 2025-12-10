@@ -25,7 +25,7 @@
         "AppUserID": "regular-user-1",
         "CompetitionID": 1,
         "Creation": "2022-01-01T00:00:00",
-        "Description": "This game has a deadline for new guesses already reached.",
+        "Description": "This game has an expired deadline for new guesses.",
         "ID": "2",
         "MaxScore": 5600,
         "MaxGuessCount": 100,
@@ -86,5 +86,29 @@
             "1": 500
         },
         "SubsDeadline": "2034-01-01T00:00:00"
+    },
+    {
+        "AppUserID": "regular-user-1",
+        "CompetitionID": 3,
+        "Creation": "2025-12-05T00:00:00",
+        "Description": "This game has no restrictions, anyone can enter at anytime by a simple submission.",
+        "ID": "5",
+        "MaxScore": 7700,
+        "MaxGuessCount": 25,
+        "Name": "Free Game 2",
+        "NextGuessNumber": 4,
+        "Passcode": null,
+        "ScoringRules": {
+            "P1": 50,
+            "P2": 50,
+            "P3": 50,
+            "32": 50,
+            "16": 100,
+            "8": 150,
+            "4": 175,
+            "2": 250,
+            "1": 500
+        },
+        "SubsDeadline": null
     }
 ]

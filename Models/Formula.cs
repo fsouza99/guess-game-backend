@@ -11,7 +11,7 @@ namespace App.Models
         [StringLength(1024)]
         public string Description { get; set; } = string.Empty;
 
-        public int ID { get; set; } // PK
+        public int ID { get; set; }
 
         [Required]
         [StringLength(32)]

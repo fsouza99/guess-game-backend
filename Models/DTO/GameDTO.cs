@@ -11,7 +11,7 @@ namespace App.Models
         [Required]
         [StringLength(256)]
         public string Description { get; set; } = default!;
-        
+
         [Range(1, 100)]
         public int MaxGuessCount { get; set; }
         
@@ -23,7 +23,7 @@ namespace App.Models
         public string? Passcode { get; set; }
 
         public JsonDocument ScoringRules { get; set; } = default!;
-        
+
         public DateTime? SubsDeadline { get; set; }
     }
 }

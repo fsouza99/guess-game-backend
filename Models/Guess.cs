@@ -7,20 +7,20 @@ namespace App.Models
     public class Guess
     {
         public DateTime Creation { get; set; }
-        
+
         [Required]
         [Comment("Content of the guess as a JSON string.")]
-        public string Data { get; set; } = default!; // JSON    
+        public string Data { get; set; } = string.Empty;
 
         [Required]
         [StringLength(11)]
-        public string GameID { get; set; } = default!; // FK/PK1
-        
+        public string GameID { get; set; } = string.Empty;
+
         [Required]
         [StringLength(16)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
-        public int Number { get; set; } // PK2
+        public int Number { get; set; }
 
         public int Score { get; set; }
     }

@@ -1,5 +1,8 @@
 [
     {
+        "ID": 1,
+        "Name": "8G4-R16",
+        "Description": "There are 8 groups of 4; best two of each group advance to R16; scoring rules are for 1st and 2nd place of each group, the teams qualified for each phase and the champion.",
         "DataTemplate": {
             "P1": 8,
             "P2": 8,
@@ -8,12 +11,12 @@
             "4": 4,
             "2": 2,
             "1": 1
-        },
-        "Description": "There are 8 groups of 4; best two of each group advance to R16; scoring rules are for 1st and 2nd place of each group, the teams qualified for each phase and the champion.",
-        "ID": 1,
-        "Name": "8G4-R16"
+        }
     },
     {
+        "ID": 2,
+        "Name": "12G4-R32",
+        "Description": "There are 12 groups of 4; best two of each group and other 8 teams advance to R32; scoring rules are for 1st and 2nd place of each group, the 8 best 3rd places, the teams qualified for each phase and the champion.",
         "DataTemplate": {
             "P1": 12,
             "P2": 12,
@@ -24,9 +27,6 @@
             "4": 4,
             "2": 2,
             "1": 1
-        },
-        "Description": "There are 12 groups of 4; best two of each group and other 8 teams advance to R32; scoring rules are for 1st and 2nd place of each group, the teams qualified for each phase and the champion.",
-        "ID": 2,
-        "Name": "12G4-R32"
+        }
     }
 ]
