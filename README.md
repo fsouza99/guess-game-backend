@@ -28,10 +28,11 @@ dotnet run [options]
 
 As opções implementadas pelo *app* são as seguintes:
 
-- --sqlite: Utiliza o SQLite como provedor de banco de dados. Por padrão, o SQL Server é utilizado.
 - --nomsg: Passa um objeto *stub* como serviço de mensageria, que nada realiza, de modo a não ser necessária a provisão de um servidor do tipo.
+- --sqlite: Utiliza o SQLite como banco de dados. Por padrão, o SQL Server é utilizado.
+- --swagger: Habilita a interação com a API pelo Swagger UI no navegador.
 
-O *workflow* de teste executa a aplicação com ambas as opções.
+O *workflow* de teste executa a aplicação com as opções mais simples.
 
 ### *Notas*
 

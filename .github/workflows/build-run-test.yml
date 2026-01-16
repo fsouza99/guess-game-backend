@@ -17,20 +17,28 @@ jobs:
 
       - name: Build app
         run: dotnet build AppRepo\GuessGame.csproj
-        
+
+      - name: Checkout unit tests repo
+        uses: actions/checkout@v4
+        with:
+          path: UnitTestRepo
+          ref: master
+          repository: fsouza99/guess-game-backend-unit-testing
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Run unit tests
+        run: cd UnitTestRepo; dotnet test; cd ..
+
       - name: Run app
         run: Start-Process dotnet -ArgumentList "run", "--project", "AppRepo", "--nomsg", "--sqlite"
 
-      - name: Checkout test repo
+      - name: Checkout API test repo
         uses: actions/checkout@v4
         with:
-          path: TestRepo
+          path: ApiTestRepo
           ref: master
           repository: fsouza99/guess-game-backend-testing
           token: ${{ secrets.ACCESS_TOKEN }}
 
-      - name: Await
-        run: sleep 40
-          
-      - name: Run tests
-        run: cd TestRepo; pytest; cd ..
+      - name: Run API tests
+        run: cd ApiTestRepo; pytest; cd ..
