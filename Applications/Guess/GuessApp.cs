@@ -41,7 +41,7 @@ public class GuessApp
     {
         var query = QueryRefiner.Guesses(_context.Guess, gameId, name, offset, limit);
         var result = await query
-            .Select(f => ViewFactory.Guess(f))
+            .Select(f => new GuessView(f))
             .ToListAsync();
         return result;
     }
@@ -54,7 +54,7 @@ public class GuessApp
             return Result.Failure<GuessView>(GuessErrors.NotFound());
         }
 
-        return ViewFactory.Guess(guess);
+        return new GuessView(guess);
     }
 
     public async Task<Result<GuessView>> CreateAsync(GuessDto dto)
@@ -116,7 +116,7 @@ public class GuessApp
         await _context.SaveChangesAsync();
         await _gameObserver.WatchAsync(game);
 
-        return ViewFactory.Guess(guess);
+        return new GuessView(guess);
     }
 
     public async Task<Result> RemoveAsync(string gameId, int number, ClaimsPrincipal user)

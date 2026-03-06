@@ -31,7 +31,7 @@ public class FormulaApp
         var query = QueryRefiner.Formulas(
             _context.Formula, name, offset, limit);
         var result = await query
-            .Select(f => ViewFactory.Formula(f))
+            .Select(f => new FormulaView(f))
             .ToListAsync();
         return result;
     }
@@ -44,7 +44,7 @@ public class FormulaApp
             return Result.Failure<FormulaView>(FormulaErrors.NotFound());
         }
 
-        return ViewFactory.Formula(formula);
+        return new FormulaView(formula);
     }
 
     public async Task<Result> UpdateAsync(int id, FormulaDto dto)
@@ -95,7 +95,7 @@ public class FormulaApp
         _context.Formula.Add(formula);
         await _context.SaveChangesAsync();
 
-        return ViewFactory.Formula(formula);
+        return new FormulaView(formula);
     }
 
     public async Task<Result> RemoveAsync(int id)

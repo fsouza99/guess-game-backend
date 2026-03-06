@@ -52,7 +52,7 @@ public class GameApp
             return Result.Failure<GameView>(GameErrors.NotFound());
         }
 
-        return ViewFactory.Game(game);
+        return new GameView(game);
     }
 
     public async Task<Result<List<SimpleGameView>>> ReadManyAsync(
@@ -68,7 +68,7 @@ public class GameApp
         var result = await query
             .Include(g => g.Competition)
             .Include(g => g.AppUser)
-            .Select(g => ViewFactory.SimpleGame(g))
+            .Select(g => new SimpleGameView(g))
             .ToListAsync();
         return result;
     }
@@ -92,7 +92,7 @@ public class GameApp
         var result = await query
             .Include(g => g.Competition)
             .Include(g => g.AppUser)
-            .Select(g => ViewFactory.SimpleGame(g))
+            .Select(g => new SimpleGameView(g))
             .ToListAsync();
         return result;
     }
@@ -182,7 +182,7 @@ public class GameApp
         // Load owner AppUser on context so view object can be built.
         AppUser gameOwner = (await _context.AppUser.FindAsync(game.AppUserID))!;
 
-        return ViewFactory.Game(game);
+        return new GameView(game);
     }
 
     public async Task<Result> RemoveAsync(string id, ClaimsPrincipal user)

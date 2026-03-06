@@ -34,7 +34,7 @@ public class CompetitionApp
         var query = QueryRefiner.Competitions(
             _context.Competition, formulaId, name, activeOnly, offset, limit);
         var result = await query
-            .Select(c => ViewFactory.SimpleCompetition(c))
+            .Select(c => new SimpleCompetitionView(c))
             .ToListAsync();
         return result;
     }
@@ -47,7 +47,7 @@ public class CompetitionApp
             return Result.Failure<CompetitionView>(CompetitionErrors.NotFound());
         }
 
-        return ViewFactory.Competition(competition);
+        return new CompetitionView(competition);
     }
 
     public async Task<Result> UpdateAsync(int id, CompetitionDto dto)
@@ -123,7 +123,7 @@ public class CompetitionApp
         _context.Competition.Add(competition);
         await _context.SaveChangesAsync();
 
-        return ViewFactory.Competition(competition);
+        return new CompetitionView(competition);
     }
 
     public async Task<Result> RemoveAsync(int id)
