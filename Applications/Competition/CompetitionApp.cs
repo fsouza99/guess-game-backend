@@ -62,13 +62,13 @@ public class CompetitionApp
         var rawData = JsonSerializer.Serialize(dto.Data.RootElement);
         if (competition.Data != rawData)
         {
-            if (!DataMatchesTemplate(dto))
+            if (!(await DataMatchesTemplateAsync(dto)))
             {
                 return Result.Failure(CompetitionErrors.UnfitData());
             }
 
             competition.Data = rawData;
-            ReassessAssociatedGames(id, dto);
+            await ReassessAssociatedGamesAsync(id, dto);
         }
 
         // Other available updates.
@@ -88,7 +88,7 @@ public class CompetitionApp
         {
             if (ItemExists(id))
             {
-                return Result.Failure(CompetitionErrors.Conflict());
+                return Result.Failure(CompetitionErrors.UpdateConflict());
             }
             return Result.Failure(CompetitionErrors.NotFound());
         }
@@ -104,7 +104,7 @@ public class CompetitionApp
             return Result.Failure<CompetitionView>(CompetitionErrors.FormulaNotFound());
         }
 
-        if (!DataMatchesTemplate(dto))
+        if (!(await DataMatchesTemplateAsync(dto, formula.DataTemplate)))
         {
             return Result.Failure<CompetitionView>(CompetitionErrors.UnfitData());
         }
@@ -145,23 +145,28 @@ public class CompetitionApp
         return _context.Competition.Any(c => c.ID == id);
     }
 
-    // Updated data must be in accordance to template.
-    private bool DataMatchesTemplate(CompetitionDto dto)
+    // Competition data must be in accordance to template.
+    private async Task<bool> DataMatchesTemplateAsync(
+        CompetitionDto dto, string? rawDataTemp = null)
     {
-        string rawDataTemp = _context.Formula
-            .Where(f => f.ID == dto.FormulaID)
-            .Select(f => f.DataTemplate)
-            .First();
-        var dataTemp = JsonDocument.Parse(rawDataTemp);
+        if (rawDataTemp is null)
+        {
+            rawDataTemp = await _context.Formula
+                .Where(f => f.ID == dto.FormulaID)
+                .Select(f => f.DataTemplate)
+                .FirstOrDefaultAsync();
+        }
+        var dataTemp = JsonDocument.Parse((string) rawDataTemp!);
         return JsonDataChecker.DataOnTemplate(dto.Data, dataTemp);
     }
 
     // Reassess games and guesses associated with given competition.
-    private void ReassessAssociatedGames(int competitionId, CompetitionDto dto)
+    private async Task ReassessAssociatedGamesAsync(int competitionId, CompetitionDto dto)
     {
-        var games = _context.Game
+        var games = await _context.Game
             .Where(g => g.CompetitionID == competitionId)
-            .Include(g => g.Guesses);
+            .Include(g => g.Guesses)
+            .ToListAsync();
         foreach (var game in games)
         {
             var sRules = JsonDocument.Parse(game.ScoringRules);

@@ -72,7 +72,7 @@ public class GuessApp
         // Check passcode.
         if (dto.GamePasscode != game.Passcode)
         {
-            return Result.Failure<GuessView>(GuessErrors.WrongPassword());
+            return Result.Failure<GuessView>(GuessErrors.WrongPasscode());
         }
 
         // Check deadline.
@@ -131,7 +131,7 @@ public class GuessApp
 
         if (!(await UserCanDelete(user, gameId)))
         {
-            return Result.Failure(GuessErrors.Forbidden());
+            return Result.Failure(GuessErrors.CannotDelete());
         }
 
         _context.Guess.Remove(guess);

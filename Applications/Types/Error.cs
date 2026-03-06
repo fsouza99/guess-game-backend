@@ -2,43 +2,33 @@ namespace App.Applications;
 
 public record Error
 {
-    public static readonly Error None = new (
-        string.Empty, string.Empty, ErrorType.Failure);
+    public static readonly Error None = new (0, string.Empty, string.Empty);
 
     public static readonly Error NullValue = new (
-        "General.Null", "Null value was provided", ErrorType.Failure);
+        0, "General.Null", "Null value was provided.");
 
-    public Error(string code, string description, ErrorType type)
+    public Error(int statusCode, string title, string description)
     {
-        Code = code;
+        StatusCode = statusCode;
+        Title = title;
         Description = description;
-        Type = type;
     }
 
-    public string Code { get; }
+    public int StatusCode { get; }
+
+    public string Title { get; }
 
     public string Description { get; }
 
-    public ErrorType Type { get; }
+    public static Error BadRequest(string title, string description) =>
+        new (400, title, description);
 
-    public static Error Conflict(string code, string description) =>
-        new (code, description, ErrorType.Conflict);
+    public static Error Conflict(string title, string description) =>
+        new (409, title, description);
 
-    public static Error Failure(string code, string description) =>
-        new (code, description, ErrorType.Failure);
+    public static Error Forbidden(string title, string description) =>
+        new (403, title, description);
 
-    public static Error Forbidden(string code, string description) =>
-        new (code, description, ErrorType.Forbidden);
-
-    public static Error NotFound(string code, string description) =>
-        new (code, description, ErrorType.NotFound);
-
-    public static Error Problem(string code, string description) =>
-        new (code, description, ErrorType.Problem);
-
-    public static Error Validation(string code, string description) =>
-        new (code, description, ErrorType.Validation);
-
-    public static Error Unauthorized(string code, string description) =>
-        new (code, description, ErrorType.Unauthorized);
+    public static Error NotFound(string title, string description) =>
+        new (404, title, description);
 }

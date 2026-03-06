@@ -2,12 +2,12 @@ namespace App.Applications;
 
 public static class FormulaErrors
 {
-    public static Error BadTemplate() => Error.Validation(
-        "Formula.BadTemplate",
+    public static Error BadDataTemplate() => Error.BadRequest(
+        "Formula.BadDataTemplate",
         "Given JSON template is unacceptable.");
 
-    public static Error Conflict() => Error.Conflict(
-        "Formula.Conflict",
+    public static Error UpdateConflict() => Error.Conflict(
+        "Formula.UpdateConflict",
         "Formula item has been modified since your last read.");
 
     public static Error NotFound() => Error.NotFound(

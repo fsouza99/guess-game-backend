@@ -1,13 +1,12 @@
 using App.Applications;
 using App.Authorization;
-using App.Identity.Data;
 using App.Models;
+using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
 
@@ -52,7 +51,8 @@ public class GameController : ControllerBase
         {
             return result.Value;
         }
-        return NotFound(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // GET: api/Game
@@ -90,19 +90,7 @@ public class GameController : ControllerBase
             return NoContent();
         }
 
-        switch (result.Error.Type)
-        {
-            case ErrorType.NotFound:
-                return NotFound(result.Error.Description);
-            case ErrorType.Conflict:
-                return Conflict(result.Error.Description);
-            case ErrorType.Forbidden:
-                return Forbid();
-            case ErrorType.Unauthorized:
-                return Unauthorized(result.Error.Description);
-            default:
-                return BadRequest(result.Error.Description);
-        }
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // POST: api/Game
@@ -115,11 +103,8 @@ public class GameController : ControllerBase
             return CreatedAtAction(
                 nameof(GetGame), new { id = result.Value.ID }, result.Value);
         }
-        if (result.Error.Type == ErrorType.NotFound)
-        {
-            return NotFound(result.Error.Description);
-        }
-        return BadRequest(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // DELETE: api/Game/5
@@ -131,7 +116,8 @@ public class GameController : ControllerBase
         {
             return NoContent();
         }
-        return NotFound(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 }
 

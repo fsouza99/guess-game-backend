@@ -1,13 +1,12 @@
 using App.Applications;
 using App.Authorization;
-using App.Identity.Data;
 using App.Models;
+using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
 
@@ -51,7 +50,8 @@ public class GuessController : ControllerBase
         {
             return result.Value;
         }
-        return NotFound(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // POST: api/Guess
@@ -66,17 +66,8 @@ public class GuessController : ControllerBase
                 new { gameId = result.Value.GameID, number = result.Value.Number },
                 result.Value);
         }
-        switch (result.Error.Type)
-        {
-            case ErrorType.NotFound:
-                return NotFound(result.Error.Description);
-            case ErrorType.Conflict:
-                return Conflict(result.Error.Description);
-            case ErrorType.Unauthorized:
-                return Unauthorized(result.Error.Description);
-            default:
-                return BadRequest(result.Error.Description);
-        }
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // DELETE: api/Guess/5/5
@@ -88,7 +79,8 @@ public class GuessController : ControllerBase
         {
             return NoContent();
         }
-        return NotFound(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 }
 

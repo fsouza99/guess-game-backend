@@ -1,6 +1,7 @@
 using App.Applications;
 using App.Authorization;
 using App.Models;
+using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -50,7 +51,8 @@ public class CompetitionController : ControllerBase
         {
             return result.Value;
         }
-        return NotFound(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // PUT: api/Competition/5
@@ -63,15 +65,7 @@ public class CompetitionController : ControllerBase
             return NoContent();
         }
 
-        switch (result.Error.Type)
-        {
-            case ErrorType.NotFound:
-                return NotFound(result.Error.Description);
-            case ErrorType.Conflict:
-                return Conflict(result.Error.Description);
-            default:
-                return BadRequest(result.Error.Description);
-        }
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // POST: api/Competition
@@ -84,11 +78,8 @@ public class CompetitionController : ControllerBase
             return CreatedAtAction(
                 nameof(GetCompetition), new { id = result.Value.ID }, result.Value);
         }
-        if (result.Error.Type == ErrorType.NotFound)
-        {
-            return NotFound(result.Error.Description);
-        }
-        return BadRequest(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 
     // DELETE: api/Competition/5
@@ -100,7 +91,8 @@ public class CompetitionController : ControllerBase
         {
             return NoContent();
         }
-        return NotFound(result.Error.Description);
+
+        return ApiErrorResponses.AppProblem(result.Error);
     }
 }
 

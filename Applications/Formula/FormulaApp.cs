@@ -68,7 +68,7 @@ public class FormulaApp
         {
             if (ItemExists(id))
             {
-                return Result.Failure(FormulaErrors.Conflict());
+                return Result.Failure(FormulaErrors.UpdateConflict());
             }
             return Result.Failure(FormulaErrors.NotFound());
         }
@@ -80,7 +80,7 @@ public class FormulaApp
     {
         if (!JsonDataChecker.DataTemplate(dto.DataTemplate))
         {
-            return Result.Failure<FormulaView>(FormulaErrors.BadTemplate());
+            return Result.Failure<FormulaView>(FormulaErrors.BadDataTemplate());
         }
 
         var rawDataTemp = JsonSerializer.Serialize(dto.DataTemplate.RootElement);

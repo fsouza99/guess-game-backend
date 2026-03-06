@@ -18,6 +18,7 @@ public class GameApp
 {
     private readonly AppDbContext _context;
     private readonly IAuthorizationService _authService;
+    public static readonly int MinSubSpan = 5;
 
     public GameApp(AppDbContext context, IAuthorizationService authorizationService)
     {
@@ -107,7 +108,7 @@ public class GameApp
 
         if (!(await UserCanUpdateAsync(user, game)))
         {
-            return Result.Failure(GameErrors.Forbidden());
+            return Result.Failure(GameErrors.CannotUpdate());
         }
 
         if (!DeadlineUpdateIsValid(dto.SubsDeadline, game.SubsDeadline))
@@ -132,7 +133,7 @@ public class GameApp
         {
             if (ItemExists(id))
             {
-                return Result.Failure<GameView>(GameErrors.Conflict());
+                return Result.Failure<GameView>(GameErrors.UpdateConflict());
             }
             return Result.Failure<GameView>(GameErrors.NotFound());
         }
@@ -195,7 +196,7 @@ public class GameApp
 
         if (!(await UserCanDelete(user, game)))
         {
-            return Result.Failure(GameErrors.Forbidden());
+            return Result.Failure(GameErrors.CannotDelete());
         }
 
         _context.Game.Remove(game);
@@ -213,12 +214,12 @@ public class GameApp
     {
         return newDeadline is null
             || newDeadline == currDeadline
-            || newDeadline >= DateTime.Now.AddMinutes(5);
+            || newDeadline >= DateTime.Now.AddMinutes(MinSubSpan);
     }
 
     private bool DeadlineInitDefinitionIsValid(DateTime? deadline, DateTime nowReference)
     {
-        return deadline is null || deadline >= nowReference.AddMinutes(5);
+        return deadline is null || deadline >= nowReference.AddMinutes(MinSubSpan);
     }
 
     private bool CompetitionIsValid(Competition competition)
