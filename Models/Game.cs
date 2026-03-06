@@ -18,7 +18,7 @@ namespace App.Models
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(11)]
+        [StringLength(11, MinimumLength=11)]
         public string ID { get; set; } = string.Empty;
 
         [Range(1, 100)]

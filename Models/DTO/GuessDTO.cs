@@ -1,22 +1,22 @@
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
-namespace App.Models
+namespace App.Models;
+
+public record GuessDto
 {
-    public class GuessDto
-    {
-        public JsonDocument Data { get; set; } = default!;
+    [Required]
+    public JsonDocument Data { get; set; } = default!;
 
-        [Required]
-        [StringLength(11)]
-        public string GameID { get; set; } = default!;
+    [Required]
+    [StringLength(11)]
+    public string GameID { get; set; } = string.Empty; // FK
 
-        [StringLength(8)]
-        public string? GamePasscode { get; set; }
+    [StringLength(8)]
+    public string? GamePasscode { get; set; }
 
-        [Required]
-        [StringLength(16)]
-        public string Name { get; set; } = default!;
-    }
+    [Required]
+    [StringLength(16)]
+    public string Name { get; set; } = string.Empty;
 }
+
