@@ -1,8 +1,8 @@
 using App.Authorization;
 using App.Identity.Data;
 using App.Models;
-using App.StaticTools;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Text.Json;
 
@@ -16,102 +16,17 @@ public class DbInitializer
     // The password used by all added users.
     private const string StdPass = "Passw0rd";
 
-    // Reads JSON file and returns its content appropriately.
-    private static JsonDocument ReadJsonFile(string file)
-    {
-        string filePath = $"Data\\Placeholders\\{file}";
-        StreamReader reader = new StreamReader(filePath);
-        string rawData = reader.ReadToEnd();
-        reader.Dispose();
-        return JsonDocument.Parse(rawData);
-    }
-
-    // Constructor
     public DbInitializer(IServiceProvider serviceProvider, AppDbContext context)
     {
         _serviceProvider = serviceProvider;
         _context = context;
     }
 
-    private void AddCompetitions()
+    private void AddJsonData<T>(string filename, DbSet<T> dbSet) where T : class
     {
-        var objs = ReadJsonFile("Competitions.json").RootElement;
-        foreach (var obj in objs.EnumerateArray())
-        {
-            var competition = new Competition
-            {
-                Active = obj.GetProperty("Active").GetBoolean(),
-                ID = obj.GetProperty("ID").GetInt32(),
-                FormulaID = obj.GetProperty("FormulaID").GetInt32(),
-                Name = obj.GetProperty("Name").GetString()!,
-                Description = obj.GetProperty("Description").GetString()!,
-                Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
-                Creation = obj.GetProperty("Creation").GetDateTime(),
-                Start = obj.GetProperty("Start").GetDateTime(),
-                End = obj.GetProperty("End").GetDateTime()
-            };
-            _context.Competition.Add(competition);
-        }
-    }
-
-    private void AddFormulas()
-    {
-        var objs = ReadJsonFile("Formulas.json").RootElement;
-        foreach (var obj in objs.EnumerateArray())
-        {
-            var formula = new Formula
-            {
-                Creation = DateTime.Now,
-                DataTemplate = JsonSerializer.Serialize(obj.GetProperty("DataTemplate")),
-                Description = obj.GetProperty("Description").GetString()!,
-                ID = obj.GetProperty("ID").GetInt32(),
-                Name = obj.GetProperty("Name").GetString()!
-            };
-            _context.Formula.Add(formula);
-        }
-    }
-
-    private void AddGames()
-    {
-        var objs = ReadJsonFile("Games.json").RootElement;
-        foreach (var obj in objs.EnumerateArray())
-        {
-            var deadline = obj.GetProperty("SubsDeadline");
-            var game = new Game
-            {
-                AppUserID = obj.GetProperty("AppUserID").GetString()!,
-                CompetitionID = obj.GetProperty("CompetitionID").GetInt32(),
-                Creation = obj.GetProperty("Creation").GetDateTime(),
-                Description = obj.GetProperty("Description").GetString()!,
-                ID = obj.GetProperty("ID").GetString()!,
-                MaxScore = obj.GetProperty("MaxScore").GetInt32(),
-                MaxGuessCount = obj.GetProperty("MaxGuessCount").GetInt32(),
-                Name = obj.GetProperty("Name").GetString()!,
-                NextGuessNumber = obj.GetProperty("NextGuessNumber").GetInt32(),
-                Passcode = obj.GetProperty("Passcode").GetString(),
-                ScoringRules = JsonSerializer.Serialize(obj.GetProperty("ScoringRules")),
-                SubsDeadline = (deadline.ValueKind == JsonValueKind.Null) ? null : deadline.GetDateTime()
-            };
-            _context.Game.Add(game);
-        }
-    }
-
-    private void AddGuesses()
-    {
-        var objs = ReadJsonFile("Guesses.json").RootElement;
-        foreach (var obj in objs.EnumerateArray())
-        {
-            var guess = new Guess
-            {
-                Creation = DateTime.Now,
-                Data = JsonSerializer.Serialize(obj.GetProperty("Data")),
-                GameID = obj.GetProperty("GameID").GetString()!,
-                Name = obj.GetProperty("Name").GetString()!,
-                Number = obj.GetProperty("Number").GetInt32(),
-                Score = obj.GetProperty("Score").GetInt32()
-            };
-            _context.Guess.Add(guess);
-        }
+        string data = File.ReadAllText($"Data\\Placeholders\\{filename}.json");
+        List<T> objs = JsonSerializer.Deserialize<List<T>>(data)!;
+        dbSet.AddRange(objs);
     }
 
     private async Task AddAppUsersAsync()
@@ -171,10 +86,10 @@ public class DbInitializer
     public async Task AddBusinessDataToContext()
     {
         // Insert orderly to respect FK constraints.
-        AddFormulas();
-        AddCompetitions();
-        AddGames();
-        AddGuesses();
+        AddJsonData<Formula>("Formulas", _context.Formula);
+        AddJsonData<Competition>("Competitions", _context.Competition);
+        AddJsonData<Game>("Games", _context.Game);
+        AddJsonData<Guess>("Guesses", _context.Guess);
 
         await _context.SaveChangesAsync();
     }
