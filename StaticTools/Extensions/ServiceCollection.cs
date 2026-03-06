@@ -1,48 +1,51 @@
+using App.Applications;
 using App.Data;
 using App.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.StaticTools.Extensions;
+namespace App.StaticTools;
 
 public static class ServiceCollectionExtensions
 {
-    // Adds database context service for user-selected provider.
+    // Add database context service for user-selected provider.
     public static IServiceCollection AddAppDbContext(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        bool useSqlite)
+        this IServiceCollection services, IConfiguration configuration, bool useDbServer)
     {
-        if (useSqlite)
-        {
-            const string connStrKey = "Sqlite";
-            string connectionString = configuration.GetConnectionString(connStrKey) ??
-                throw new InvalidOperationException($"Connection string '{connStrKey}' not found.");
-            services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
-        }
-        else
+        if (useDbServer)
         {
             const string connStrKey = "SqlServerEnvVarKey";
             string envVarKey = configuration.GetConnectionString(connStrKey) ??
-                throw new InvalidOperationException($"Connection string '{connStrKey}' not found.");
+                throw new InvalidOperationException(
+                    $"Connection string '{connStrKey}' not found.");
             string connectionString = configuration[envVarKey] ??
-                throw new InvalidOperationException($"Environment variable '{envVarKey}' not found.");
-            services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+                throw new InvalidOperationException(
+                    $"Environment variable '{envVarKey}' not found.");
+            services.AddDbContext<AppDbContext>(
+                options => options.UseSqlServer(connectionString));
+        }
+        else
+        {
+            const string connStrKey = "Sqlite";
+            string connectionString = configuration.GetConnectionString(connStrKey) ??
+                throw new InvalidOperationException(
+                    $"Connection string '{connStrKey}' not found.");
+            services.AddDbContext<AppDbContext>(
+                options => options.UseSqlite(connectionString));
         }
 
         return services;
     }
 
-    // Adds messaging service as singleton, either as effective or stub object.
+    // Add messaging service as singleton, either as effective or stub object.
     public static async Task<IServiceCollection> AddMessagingService(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        bool useMessaging)
+        this IServiceCollection services, IConfiguration configuration, bool useMsgServer)
     {
         IMessagingService messagingService;
 
-        if (useMessaging)
+        if (useMsgServer)
         {
-            messagingService = await MessagingServiceFactory.Create(configuration["Messaging:Host"]!);
+            messagingService = await MessagingServiceFactory.Create(
+                configuration["Messaging:Host"]!);
         }
         else
         {
@@ -50,6 +53,17 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddSingleton(messagingService);
+        return services;
+    }
+
+    // Add aplication services.
+    public static IServiceCollection AddApplications(this IServiceCollection services)
+    {
+        services.AddScoped<FormulaApp>();
+        services.AddScoped<CompetitionApp>();
+        services.AddScoped<GameApp>();
+        services.AddScoped<GuessApp>();
+
         return services;
     }
 }

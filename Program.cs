@@ -1,10 +1,10 @@
-using App.Authorization.Handlers;
-using App.Authorization.References;
+using App.Applications;
+using App.Authorization;
 using App.Controllers;
 using App.Data;
 using App.Identity.Data;
 using App.Services;
-using App.StaticTools.Extensions;
+using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Retrieve user parameters.
 
-bool useMessaging = !args.Contains("--nomsg");
-bool useSqlite = args.Contains("--sqlite");
+bool useDbServer = args.Contains("--dbserver");
+bool useMsgServer = args.Contains("--msgserver");
 bool useSwagger = args.Contains("--swagger");
 
 // Add services on auth operations, database, access and testing.
@@ -31,7 +31,7 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddControllers();
 
-builder.Services.AddAppDbContext(builder.Configuration, useSqlite);
+builder.Services.AddAppDbContext(builder.Configuration, useDbServer);
 
 builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddRoles<IdentityRole>()
@@ -43,16 +43,19 @@ if (useSwagger)
     builder.Services.AddSwaggerGen();
 }
 
-builder.Services
-    .AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
 
 // Add related services of game observation, messaging and email.
 
-await builder.Services.AddMessagingService(builder.Configuration, useMessaging);
+await builder.Services.AddMessagingService(builder.Configuration, useMsgServer);
 
 builder.Services.AddSingleton<IEmailAppMessager, EmailAppMessager>();
 
 builder.Services.AddScoped<IGameObserver, GameObserver>();
+
+// Add application services.
+
+builder.Services.AddApplications();
 
 // Make user-related configurations.
 
@@ -83,7 +86,7 @@ if (app.Environment.IsDevelopment() && useSwagger)
 
 // Provide initial app data.
 
-await app.InitializeDatabaseAsync(useSqlite);
+await app.InitializeDatabaseAsync(useDbServer);
 
 // Settle middleware and mappings.
 

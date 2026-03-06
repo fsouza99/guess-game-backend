@@ -1,15 +1,11 @@
-using App.Authorization.References;
-using App.Controllers.ResponseMessages;
-using App.Data;
+using App.Applications;
+using App.Authorization;
 using App.Models;
-using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System;
 
@@ -20,130 +16,86 @@ namespace App.Controllers;
 [Authorize(Policy = PolicyReference.AccreditedOnly)]
 public class FormulaController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly FormulaApp _app;
 
-    public FormulaController(AppDbContext context)
+    public FormulaController(FormulaApp app)
     {
-        _context = context;
+        _app = app;
     }
 
     // GET: api/Formula/Meta
     [HttpGet("Meta")]
     public async Task<ActionResult<int>> GetMetadata(string? name)
     {
-        var query = QueryRefiner.Formulas(_context.Formula, name);
-        var count = await query.CountAsync();
-        return count;
+        Result<int> result = await _app.CountAsync(name);
+        return result.Value;
     }
 
     // GET: api/Formula
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<FormulaView>>> GetFormulas(
+    public async Task<ActionResult<List<FormulaView>>> GetFormulas(
         string? name, int? offset, int? limit)
     {
-        var query = QueryRefiner.Formulas(
-            _context.Formula, name, offset, limit);
-        var result = await query
-            .Select(f => ViewFactory.Formula(f))
-            .ToListAsync();
-        return result;
+        Result<List<FormulaView>> result = await _app.ReadManyAsync(
+            name, offset, limit);
+        return result.Value;
     }
 
     // GET: api/Formula/5
     [HttpGet("{id}")]
     public async Task<ActionResult<FormulaView>> GetFormula(int id)
     {
-        var formula = await _context.Formula.FindAsync(id);
-        if (formula is null)
+        Result<FormulaView> result = await _app.ReadOneAsync(id);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return result.Value;
         }
-
-        return ViewFactory.Formula(formula);
+        return NotFound(result.Error.Description);
     }
 
     // PUT: api/Formula/5
     [HttpPut("{id}")]
     public async Task<IActionResult> PutFormula(int id, FormulaDto dto)
     {
-        // Formula check.
-        var formula = await _context.Formula.FindAsync(id);
-        if (formula is null)
+        Result result = await _app.UpdateAsync(id, dto);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return NoContent();
         }
 
-        // Available updates.
-        formula.Description = dto.Description;
-        formula.Name = dto.Name;
-
-        _context.Entry(formula).State = EntityState.Modified;
-
-        try
+        switch (result.Error.Type)
         {
-            await _context.SaveChangesAsync();
+            case ErrorType.NotFound:
+                return NotFound(result.Error.Description);
+            case ErrorType.Conflict:
+                return Conflict(result.Error.Description);
+            default:
+                return BadRequest(result.Error.Description);
         }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!FormulaExists(id))
-            {
-                return NotFound();
-            }
-            return Conflict(MessageRepo.UpdateConflict);
-        }
-
-        return NoContent();
     }
 
     // POST: api/Formula
     [HttpPost]
     public async Task<ActionResult<FormulaView>> PostFormula(FormulaDto dto)
     {
-        // Check template conformance.
-        if (!JsonDataChecker.DataTemplate(dto.DataTemplate))
+        Result<FormulaView> result = await _app.CreateAsync(dto);
+        if (result.IsSuccess)
         {
-            return BadRequest(MessageRepo.BadTemplate);
+            return CreatedAtAction(
+                nameof(GetFormula), new { id = result.Value.ID }, result.Value);
         }
-
-        // Creation.
-        var rawDataTemp = JsonSerializer.Serialize(
-            dto.DataTemplate.RootElement);
-        var formula = new Formula
-        {
-            Creation = DateTime.Now,
-            DataTemplate = rawDataTemp,
-            Description = dto.Description,
-            Name = dto.Name
-        };
-
-        _context.Formula.Add(formula);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(
-            nameof(GetFormula),
-            new { id = formula.ID },
-            ViewFactory.Formula(formula));
+        return BadRequest(result.Error.Description);
     }
 
     // DELETE: api/Formula/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteFormula(int id)
     {
-        var formula = await _context.Formula.FindAsync(id);
-        if (formula is null)
+        Result result = await _app.RemoveAsync(id);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return NoContent();
         }
-
-        _context.Formula.Remove(formula);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool FormulaExists(int id)
-    {
-        return _context.Formula.Any(f => f.ID == id);
+        return NotFound(result.Error.Description);
     }
 }
-

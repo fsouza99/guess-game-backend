@@ -1,4 +1,4 @@
-namespace App.Authorization.References;
+namespace App.Authorization;
 
 /*! A centralized repo for role names. */
 public static class RoleReference

@@ -6,15 +6,15 @@ namespace App.StaticTools;
 
 public static class QueryRefiner
 {
-	/*! Applies boundaries to query, allowing for pagination. */
+	/*! Apply boundaries to query, allowing for pagination. */
 	public static IQueryable<T> Bound<T>(
         IQueryable<T> query, int? offset = null, int? limit = null)
 	{
-		if (offset is not null && offset > 0)
+		if (offset is not null)
         {
             query = query.Skip((int) offset);
         }
-        if (limit is not null && limit > 0)
+        if (limit is not null)
         {
             query = query.Take((int) limit);
         }

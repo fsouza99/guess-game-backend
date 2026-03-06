@@ -1,18 +1,19 @@
 using App.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.StaticTools.Extensions;
+namespace App.StaticTools;
 
-public static class DatabaseWorkloads
+public static class DatabaseWorkloadsExtensions
 {
-    // Initializes the database by creating the models and adding placeholder data.
-    public static async Task InitializeDatabaseAsync(this WebApplication app, bool useSqlite)
+    // Initialize the database by creating the models and adding placeholder data.
+    public static async Task InitializeDatabaseAsync(
+        this WebApplication app, bool useDbServer)
     {
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
             var context = services.GetRequiredService<AppDbContext>();
-            
+
             await context.Database.EnsureCreatedAsync();
             if (await context.Formula.AnyAsync())
             {
@@ -21,14 +22,26 @@ public static class DatabaseWorkloads
             }
 
             var dbinit = new DbInitializer(services, context);
-            if (useSqlite)
+            if (useDbServer)
             {
-                // When using SQLite, placeholder data for all models will be inserted by code.
-                await dbinit.AddUserAndBusinessDataToContext();
-                return;
+                /* "Formula" and "Competition" have "auto IDs" on SQL Server. With that,
+                    no manual ID setting is allowed.
+
+                    Although SQL "SET" commands could solve this, we judge it more
+                    adequate to avoid insertion on these models directly from code.
+                    Instead, an associated procedure must be made available for execution
+                    on the database.
+
+                    When using SQL Server, insert only user-related data from code.
+                */
+                await dbinit.AddUserDataToContext();
             }
-            // Otherwise, placeholder data will be inserted by code only for user-related models.
-            await dbinit.AddUserDataToContext();
+            else
+            {
+                // If using SQLite, insert placeholder data for all models.
+                await dbinit.AddUserAndBusinessDataToContext();
+            }
+            return;
         }
     }
 }

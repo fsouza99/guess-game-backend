@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace App.StaticTools.Extensions;
+namespace App.StaticTools;
 
 public static class CustomEndpoints
 {
-    // Adds extra endpoints to Identity, addressing particular needs in account management.
+    // Add extra endpoints to Identity, addressing particular needs in account management.
     public static void MapExtraIdentityEndpoints(this WebApplication app)
     {
         app.MapGetProfileEndpoint();
@@ -20,7 +20,7 @@ public static class CustomEndpoints
         app.MapPostNicknameEndpoint();
     }
 
-    // Allow the user to register an account using email, nickname and password.
+    // Add endpoint to register an account using email, nickname and password.
     public static void MapPostAppUser(this WebApplication app)
     {
         app.MapPost("/register/appuser", async (
@@ -45,7 +45,7 @@ public static class CustomEndpoints
         });
     }
 
-    // Allows the user to set his nickname.
+    // Add endpoint to set personal nickname.
     public static void MapPostNicknameEndpoint(this WebApplication app)
     {
         app.MapPost(
@@ -60,20 +60,20 @@ public static class CustomEndpoints
                 {
                     return Results.NotFound();
                 }
-                
                 user.Nickname = nickname;
+
                 var result = await userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
                     return Results.BadRequest("Nickname update failed.");
                 }
-                
+
                 return Results.Ok();
             }
         ).WithOpenApi().RequireAuthorization();
     }
 
-    // Allows the user to set his email and have the username updated accordingly.
+    // Add endpoint to set email and have the username updated accordingly.
     public static void MapPostEmailEndpoint(this WebApplication app)
     {
         app.MapPost(
@@ -88,26 +88,25 @@ public static class CustomEndpoints
                 {
                     return Results.NotFound();
                 }
-
                 // "UserManager" methods update storage on their own, so we don't use them here.
                 user.Email = email;
-                user.UserName = email; // Allows user to log in using email.
+                user.UserName = email; // Allow user to log in using email.
                 user.NormalizedUserName = userManager.NormalizeName(email);
                 user.NormalizedEmail = userManager.NormalizeEmail(email);
-                
+
                 // Update all or nothing.
                 var updateResult = await userManager.UpdateAsync(user);
                 if (!updateResult.Succeeded)
                 {
                     return Results.BadRequest("User update failed.");
                 }
-                
+
                 return Results.Ok();
             }
         ).WithOpenApi().RequireAuthorization();
     }
 
-    // Allows the user to retrieve his profile data.
+    // Add endpoint to retrieve personal profile data.
     public static void MapGetProfileEndpoint(this WebApplication app)
     {
         app.MapGet(
@@ -133,7 +132,7 @@ public static class CustomEndpoints
         ).WithOpenApi().RequireAuthorization();
     }
 
-    // Allows the user to log out from his account.
+    // Add endpoint to log out from personal account.
     public static void MapPostLogoutEndpoint(this WebApplication app)
     {
         app.MapPost(
@@ -152,7 +151,7 @@ public static class CustomEndpoints
         ).WithOpenApi().RequireAuthorization();
     }
 
-    // Allows the user to delete his own account.
+    // Add endpoint to delete personal account.
     public static void MapPostDeleteAccountEndpoint(this WebApplication app)
     {
         app.MapDelete(

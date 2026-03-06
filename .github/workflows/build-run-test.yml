@@ -30,7 +30,7 @@ jobs:
         run: cd UnitTestRepo; dotnet test; cd ..
 
       - name: Run app
-        run: Start-Process dotnet -ArgumentList "run", "--project", "AppRepo", "--nomsg", "--sqlite"
+        run: Start-Process dotnet -ArgumentList "run", "--project", "AppRepo"
 
       - name: Checkout API test repo
         uses: actions/checkout@v4

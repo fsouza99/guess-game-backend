@@ -14,11 +14,11 @@ namespace App.Models
 
         [Range(1, 100)]
         public int MaxGuessCount { get; set; }
-        
+
         [Required]
         [StringLength(32)]
         public string Name { get; set; } = default!;
-        
+
         [StringLength(8)]
         public string? Passcode { get; set; }
 

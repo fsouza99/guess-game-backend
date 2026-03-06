@@ -1,18 +1,13 @@
-using App.Authorization.Requirements;
-using App.Controllers.ResponseMessages;
-using App.Data;
+using App.Applications;
+using App.Authorization;
 using App.Identity.Data;
 using App.Models;
-using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System;
 
@@ -22,252 +17,121 @@ namespace App.Controllers;
 [ApiController]
 public class GameController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly IAuthorizationService _authService;
+    private readonly GameApp _app;
 
-    public GameController(
-        AppDbContext context, IAuthorizationService authorizationService)
+    public GameController(GameApp app)
     {
-        _authService = authorizationService;
-        _context = context;
+        _app = app;
     }
 
     // GET: api/Game/Meta
     [HttpGet("Meta")]
     public async Task<ActionResult<int>> GetMetadata(
-        int? competitionId,
-        string? appUserId,
-        string? name,
-        bool publicOnly = false)
+        int? competitionId, string? name, bool publicOnly)
     {
-        var query = QueryRefiner.Games(
-            _context.Game, competitionId, appUserId, name, publicOnly);
-        var count = await query.CountAsync();
-        return count;
+        Result<int> result = await _app.CountAsync(competitionId, name, publicOnly);
+        return result.Value;
     }
 
     // GET: api/Game/Meta/Personal
     [HttpGet("Meta/Personal"), Authorize]
     public async Task<ActionResult<int>> GetPersonalMetadata(
-        int? competitionId,
-        string? name,
-        bool publicOnly = false)
+        int? competitionId, string? name, bool publicOnly)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var query = QueryRefiner.Games(
-            _context.Game, competitionId, userId, name, publicOnly);
-        var count = await query.CountAsync();
-        return count;
+        Result<int> result = await _app.CountPersonalAsync(
+            User, competitionId, name, publicOnly);
+        return result.Value;
     }
 
     // GET: api/Game/5
     [HttpGet("{id}")]
     public async Task<ActionResult<GameView>> GetGame(string id)
     {
-        var game = await _context.Game
-            .Include(g => g.AppUser)
-            .Include(g => g.Competition)
-            .FirstOrDefaultAsync(g => g.ID == id);
-        if (game is null)
+        Result<GameView> result = await _app.ReadOneAsync(id);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return result.Value;
         }
-
-        return ViewFactory.Game(game);
+        return NotFound(result.Error.Description);
     }
 
     // GET: api/Game
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SimpleGameView>>> GetGames(
+    public async Task<ActionResult<List<SimpleGameView>>> GetGames(
         int? competitionId,
-        string? appUserId,
+        string? userId,
         string? name,
-        bool publicOnly = false,
-        int? offset = null,
-        int? limit = null)
+        bool publicOnly,
+        int? offset,
+        int? limit)
     {
-        var query = QueryRefiner.Games(
-            _context.Game,
-            competitionId,
-            appUserId,
-            name,
-            publicOnly,
-            offset,
-            limit);
-        var result = await query
-            .Include(g => g.Competition)
-            .Include(g => g.AppUser)
-            .Select(g => ViewFactory.SimpleGame(g))
-            .ToListAsync();
-        return result;
+        Result<List<SimpleGameView>> result = await _app.ReadManyAsync(
+            competitionId, userId, name, publicOnly, offset, limit);
+        return result.Value;
     }
 
     // GET: api/Game/Personal
     [HttpGet("Personal"), Authorize]
-    public async Task<ActionResult<IEnumerable<SimpleGameView>>> GetPersonalGames(
-        int? competitionId,
-        string? name,
-        bool publicOnly = false,
-        int? offset = null,
-        int? limit = null)
+    public async Task<ActionResult<List<SimpleGameView>>> GetPersonalGames(
+        int? competitionId, string? name, bool publicOnly, int? offset, int? limit)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var query = QueryRefiner.Games(
-            _context.Game,
-            competitionId,
-            userId,
-            name,
-            publicOnly,
-            offset,
-            limit);
-        var result = await query
-            .Include(g => g.Competition)
-            .Include(g => g.AppUser)
-            .Select(g => ViewFactory.SimpleGame(g))
-            .ToListAsync();
-        return result;
+        Result<List<SimpleGameView>> result = await _app.ReadManyPersonalAsync(
+            User, competitionId, name, publicOnly, offset, limit);
+        return result.Value;
     }
 
     // PUT: api/Game/5
     [HttpPut("{id}"), Authorize]
     public async Task<IActionResult> PutGame(string id, GameDto dto)
     {
-        // Check game.
-        var game = await _context.Game.FindAsync(id);
-        if (game is null)
+        Result result = await _app.UpdateAsync(id, dto, User);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return NoContent();
         }
 
-        // Only the owner can edit.
-        var authorization = await _authService
-            .AuthorizeAsync(User, game, Operations.Update);
-        if (!authorization.Succeeded)
+        switch (result.Error.Type)
         {
-            return Forbid();
+            case ErrorType.NotFound:
+                return NotFound(result.Error.Description);
+            case ErrorType.Conflict:
+                return Conflict(result.Error.Description);
+            case ErrorType.Forbidden:
+                return Forbid();
+            case ErrorType.Unauthorized:
+                return Unauthorized(result.Error.Description);
+            default:
+                return BadRequest(result.Error.Description);
         }
-
-        // If new, submission deadline must be either "null" or at least 5 min in future.
-        var dateTimeNow = DateTime.Now;
-        if (dto.SubsDeadline != game.SubsDeadline
-            && dto.SubsDeadline is not null
-            && dto.SubsDeadline < dateTimeNow.AddMinutes(5))
-        {
-            return BadRequest(MessageRepo.TooEarlySubsDeadline);
-        }
-
-        // Available updates.
-        game.Description = dto.Description;
-        game.MaxGuessCount = dto.MaxGuessCount;
-        game.Name = dto.Name;
-        game.Passcode = dto.Passcode;
-        game.SubsDeadline = dto.SubsDeadline;
-
-        _context.Entry(game).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!GameExists(id))
-            {
-                return NotFound();
-            }
-            return Conflict(MessageRepo.UpdateConflict);
-        }
-
-        return NoContent();
     }
 
     // POST: api/Game
     [HttpPost, Authorize]
     public async Task<ActionResult<GameView>> PostGame(GameDto dto)
     {
-        // Check competition.
-        var competition = await _context.Competition
-            .Include(c => c.Formula)
-            .FirstAsync(c => c.ID == dto.CompetitionID);
-        if (competition is null)
+        Result<GameView> result = await _app.CreateAsync(dto, User);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return CreatedAtAction(
+                nameof(GetGame), new { id = result.Value.ID }, result.Value);
         }
-        if (!competition.Active)
+        if (result.Error.Type == ErrorType.NotFound)
         {
-            return Conflict(MessageRepo.InactiveResource);
+            return NotFound(result.Error.Description);
         }
-
-        // Check whether submission deadline is at least 5 min in future.
-        var dateTimeNow = DateTime.Now;
-        if (dto.SubsDeadline is not null &&
-            dto.SubsDeadline < dateTimeNow.AddMinutes(5))
-        {
-            return BadRequest(MessageRepo.TooEarlySubsDeadline);
-        }
-
-        // Check conformance of "ScoringRules" with template.
-        var dataTemp = JsonDocument.Parse(competition.Formula.DataTemplate);
-        if (!JsonDataChecker.ScoringRulesOnTemplate(
-            dto.ScoringRules, dataTemp))
-        {
-            return BadRequest(MessageRepo.UnfitData);
-        }
-
-        var compData = JsonDocument.Parse(competition.Data);
-        var game = new Game
-        {
-            AppUserID = User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-            CompetitionID = dto.CompetitionID,
-            Creation = dateTimeNow,
-            Description = dto.Description,
-            ID = DataGen.StringID(),
-            MaxScore = GuessScorer.Evaluate(compData, compData, dto.ScoringRules),
-            MaxGuessCount = dto.MaxGuessCount,
-            Name = dto.Name,
-            Passcode = dto.Passcode,
-            ScoringRules = JsonSerializer.Serialize(dto.ScoringRules),
-            SubsDeadline = dto.SubsDeadline
-        };
-        _context.Game.Add(game);
-        await _context.SaveChangesAsync();
-
-        await _context.AppUser.FindAsync(game.AppUserID);
-
-        return CreatedAtAction(
-            nameof(GetGame),
-            new { id = game.ID },
-            ViewFactory.Game(game)
-        );
+        return BadRequest(result.Error.Description);
     }
 
     // DELETE: api/Game/5
     [HttpDelete("{id}"), Authorize]
     public async Task<IActionResult> DeleteGame(string id)
     {
-        var game = await _context.Game.FindAsync(id);
-        if (game is null)
+        Result result = await _app.RemoveAsync(id, User);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return NoContent();
         }
-
-        // Only the owner and site team can delete.
-        var authorization = await _authService
-            .AuthorizeAsync(User, game, Operations.Update);
-        if (!authorization.Succeeded)
-        {
-            return Forbid();
-        }
-
-        _context.Game.Remove(game);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool GameExists(string id)
-    {
-        return _context.Game.Any(e => e.ID == id);
+        return NotFound(result.Error.Description);
     }
 }
 

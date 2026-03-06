@@ -1,11 +1,9 @@
-using App.Authorization.References;
-using App.Authorization.Requirements;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using System.Security.Claims;
 
-namespace App.Authorization.Handlers;
+namespace App.Authorization;
 
 public class GameOpAuthorizationHandler : AuthorizationHandler<OperationAuthorizationRequirement, Game>
 {

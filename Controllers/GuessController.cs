@@ -1,16 +1,13 @@
-using App.Authorization.Requirements;
-using App.Controllers.ResponseMessages;
-using App.Data;
+using App.Applications;
+using App.Authorization;
+using App.Identity.Data;
 using App.Models;
-using App.Services;
-using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
 
@@ -20,154 +17,78 @@ namespace App.Controllers;
 [ApiController]
 public class GuessController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly IAuthorizationService _authService;
-    private readonly IGameObserver _gameObserver;
+    private readonly GuessApp _app;
 
-    public GuessController(
-        AppDbContext context,
-        IAuthorizationService authService,
-        IGameObserver gameObserver)
+    public GuessController(GuessApp app)
     {
-        _authService = authService;
-        _context = context;
-        _gameObserver = gameObserver;
+        _app = app;
     }
 
     // GET: api/Guess/Meta
     [HttpGet("Meta")]
-    public async Task<ActionResult<int>> GetMetadata(
-        string? gameId, string? name)
+    public async Task<ActionResult<int>> GetMetadata(string? gameId, string? name)
     {
-        var query = QueryRefiner.Guesses(_context.Guess, gameId, name);
-        var count = await query.CountAsync();
-        return count;
+        Result<int> result = await _app.CountAsync(gameId, name);
+        return result.Value;
     }
 
     // GET: api/Guess
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<GuessView>>> GetGuesses(
+    public async Task<ActionResult<List<GuessView>>> GetGuesses(
         string? gameId, string? name, int? offset, int? limit)
     {
-        var query = QueryRefiner.Guesses(
-            _context.Guess, gameId, name, offset, limit);
-        var result = await query
-            .Select(g => ViewFactory.Guess(g))
-            .ToListAsync();
-        return result;
+        Result<List<GuessView>> result = await _app.ReadManyAsync(
+            gameId, name, offset, limit);
+        return result.Value;
     }
 
     // GET: api/Guess/5/5
     [HttpGet("{gameId}/{number}")]
-    public async Task<ActionResult<GuessView>> GetGuess(
-        string gameId, int number)
+    public async Task<ActionResult<GuessView>> GetGuess(string gameId, int number)
     {
-        var guess = await _context.Guess.FindAsync(gameId, number);
-        if (guess is null)
+        Result<GuessView> result = await _app.ReadOneAsync(gameId, number);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return result.Value;
         }
-
-        return ViewFactory.Guess(guess);
+        return NotFound(result.Error.Description);
     }
 
     // POST: api/Guess
     [HttpPost]
     public async Task<ActionResult<GuessView>> PostGuess(GuessDto dto)
     {
-        // Check game.
-        var game = await _context.Game
-            .Include(g => g.Competition)
-            .ThenInclude(c => c.Formula)
-            .FirstAsync(g => g.ID == dto.GameID);
-        if (game is null)
+        Result<GuessView> result = await _app.CreateAsync(dto);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return CreatedAtAction(
+                nameof(GetGuess),
+                new { gameId = result.Value.GameID, number = result.Value.Number },
+                result.Value);
         }
-
-        // Check passcode.
-        if (!string.IsNullOrEmpty(game.Passcode) &&
-            dto.GamePasscode != game.Passcode)
+        switch (result.Error.Type)
         {
-            return Unauthorized(MessageRepo.PasscodeError);
+            case ErrorType.NotFound:
+                return NotFound(result.Error.Description);
+            case ErrorType.Conflict:
+                return Conflict(result.Error.Description);
+            case ErrorType.Unauthorized:
+                return Unauthorized(result.Error.Description);
+            default:
+                return BadRequest(result.Error.Description);
         }
-
-        // Check deadline.
-        var dateTimeNow = DateTime.Now;
-        if (game.SubsDeadline is not null &&
-            dateTimeNow > game.SubsDeadline)
-        {
-            return Conflict(MessageRepo.SubsDeadlineReached);
-        }
-
-        // Check guess count.
-        int gameGuessCount = await _context.Guess
-            .Where(g => g.GameID == game.ID)
-            .CountAsync();
-        if (gameGuessCount >= game.MaxGuessCount)
-        {
-            return Conflict(MessageRepo.MaxGuessCountReached);
-        }
-
-        // Check conformance of "Data" with template.
-        var dataTemp = JsonDocument.Parse(game.Competition.Formula.DataTemplate);
-        if (!JsonDataChecker.DataOnTemplate(dto.Data, dataTemp))
-        {
-            return BadRequest(MessageRepo.UnfitData);
-        }
-
-        // Create.
-        var guess = new Guess
-        {
-            Creation = dateTimeNow,
-            Data = JsonSerializer.Serialize(dto.Data),
-            GameID = dto.GameID,
-            Name = dto.Name,
-            Number = game.NextGuessNumber++,
-            Score = GuessScorer.Evaluate(
-                dto.Data,
-                JsonDocument.Parse(game.Competition.Data),
-                JsonDocument.Parse(game.ScoringRules))
-        };
-        _context.Guess.Add(guess);
-
-        // Save changes and notify game's owner of relevant events.
-        await _context.SaveChangesAsync();
-        await _gameObserver.WatchAsync(game);
-
-        return CreatedAtAction(
-            nameof(GetGuess),
-            new { gameID = guess.GameID, number = guess.Number },
-            ViewFactory.Guess(guess));
     }
 
     // DELETE: api/Guess/5/5
     [HttpDelete("{gameId}/{number}"), Authorize]
     public async Task<ActionResult> DeleteGuess(string gameId, int number)
     {
-        // Guess check.
-        var guess = await _context.Guess
-            .Where(g => g.GameID == gameId && g.Number == number)
-            .FirstOrDefaultAsync();
-        if (guess is null)
+        Result result = await _app.RemoveAsync(gameId, number, User);
+        if (result.IsSuccess)
         {
-            return NotFound();
+            return NoContent();
         }
-
-        // Only game owner and staff members can delete.
-        // Conveniently reuse the "AuthorizationHandler" for Game model class.
-        var game = await _context.Game.FindAsync(gameId);
-        var authorization = await _authService
-            .AuthorizeAsync(User, game, Operations.Delete);
-        if (!authorization.Succeeded)
-        {
-            return Forbid();
-        }
-
-        _context.Guess.Remove(guess);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        return NotFound(result.Error.Description);
     }
 }
 

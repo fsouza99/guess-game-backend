@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 
-namespace App.Authorization.Requirements;
+namespace App.Authorization;
 
 public static class Operations
 {

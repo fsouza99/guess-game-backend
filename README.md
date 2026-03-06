@@ -10,13 +10,13 @@ Usuários cadastrados podem organizar disputas onde palpites podem ser deixados 
 
 ### Controladores principais
 
-**Formatos**: Cada formato de competição define modelos de inserção de dados esportivos e regras de pontuação a serem reforçados pela aplicação.
+**Formatos**: Cada formato de competição define modelos de dados esportivos e regras de pontuação a serem reforçados pela aplicação.
 
-**Competições**: Cada competição implementa a identidade de um torneio esportivo real que faz uso de um formato salvo no banco de dados.
+**Competições**: Cada competição implementa a identidade de um torneio esportivo real que faz uso de um formato conhecido.
 
-**Jogos**: Usuários cadastrados podem criar e gerir jogos, que colecionam palpites direcionados a uma competição específica. Seu autor pode definir também regras de acesso para demais visitantes do site.
+**Jogos**: Usuários cadastrados podem criar e gerir jogos, que organizam palpites direcionados a uma competição selecionada. Seu autor pode definir regras de pontuação e acesso.
 
-**Palpites**: Um palpite para resultados de eventos reais é atrelado a um jogo. Usuários da API podem deixar um palpite sem a necessidade de autenticação, mas ainda sujeitos às regras de pontuação e acesso definidas pelo autor do jogo.
+**Palpites**: Um palpite para resultados de eventos reais é atrelado a um jogo. Usuários da API podem palpitar sem autenticação, mas ainda sujeitos às regras de pontuação e acesso definidas pelo autor do jogo.
 
 ### Execução
 
@@ -28,11 +28,11 @@ dotnet run [options]
 
 As opções implementadas pelo *app* são as seguintes:
 
-- --nomsg: Passa um objeto *stub* como serviço de mensageria, que nada realiza, de modo a não ser necessária a provisão de um servidor do tipo.
-- --sqlite: Utiliza o SQLite como banco de dados. Por padrão, o SQL Server é utilizado.
+- --dbserver: Utiliza o servidor de banco de dados programado. Por padrão, o SQLite é utilizado.
+- --msgserver: Utiliza o servidor de mensageria programado. Por padrão, um *stub*, que nada realiza, é utilizado.
 - --swagger: Habilita a interação com a API pelo Swagger UI no navegador.
 
-O *workflow* de teste executa a aplicação com as opções mais simples.
+O *workflow* de teste executa a aplicação sem nenhuma opção.
 
 ### *Notas*
 
