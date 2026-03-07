@@ -145,7 +145,7 @@ public class GameApp
     {
         var competition = await _context.Competition
             .Include(c => c.Formula)
-            .FirstAsync(c => c.ID == dto.CompetitionID);
+            .FirstOrDefaultAsync(c => c.ID == dto.CompetitionID);
         if (!CompetitionIsValid(competition))
         {
             return Result.Failure<GameView>(GameErrors.CompetitionNotFound());
@@ -157,7 +157,7 @@ public class GameApp
             return Result.Failure<GameView>(GameErrors.TooEarlySubsDeadline());
         }
 
-        if (!RulesMatchTemplate(dto.ScoringRules, competition.Formula.DataTemplate))
+        if (!RulesMatchTemplate(dto.ScoringRules, competition!.Formula.DataTemplate))
         {
             return Result.Failure<GameView>(GameErrors.UnfitData());
         }
@@ -222,7 +222,7 @@ public class GameApp
         return deadline is null || deadline >= nowReference.AddMinutes(MinSubSpan);
     }
 
-    private bool CompetitionIsValid(Competition competition)
+    private bool CompetitionIsValid(Competition? competition)
     {
         return competition is not null && competition.Active;
     }

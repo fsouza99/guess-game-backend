@@ -63,14 +63,14 @@ public class GuessApp
         var game = await _context.Game
             .Include(g => g.Competition)
             .ThenInclude(c => c.Formula)
-            .FirstAsync(g => g.ID == dto.GameID);
+            .FirstOrDefaultAsync(g => g.ID == dto.GameID);
         if (game is null)
         {
             return Result.Failure<GuessView>(GuessErrors.GameNotFound());
         }
 
         // Check passcode.
-        if (dto.GamePasscode != game.Passcode)
+        if (game.Passcode is null ? false : dto.GamePasscode != game.Passcode)
         {
             return Result.Failure<GuessView>(GuessErrors.WrongPasscode());
         }
