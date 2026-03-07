@@ -31,10 +31,7 @@ public class EmailAppMessager : IEmailAppMessager
     }
 
     public async Task EmailFirstGameEverAsync(
-        string gameId,
-        string gameName,
-        string recipient,
-        string userNick)
+        string gameId, string gameName, string recipient, string userNick)
     {
         var data = new
         {

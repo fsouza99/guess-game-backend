@@ -1,4 +1,4 @@
-namespace App.Identity.Data;
+namespace App.Identity;
 
 public record SimpleAppUserView
 {

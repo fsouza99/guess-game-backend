@@ -1,4 +1,4 @@
-using App.Identity.Data;
+using App.Identity;
 
 namespace App.Models;
 

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace App.Identity.Data;
+namespace App.Identity;
 
 [Index(nameof(Nickname), IsUnique = true)]
 public class AppUser : IdentityUser

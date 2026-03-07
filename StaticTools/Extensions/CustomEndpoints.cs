@@ -1,4 +1,5 @@
-using App.Identity.Data;
+using App.Identity;
+using App.Models;
 using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

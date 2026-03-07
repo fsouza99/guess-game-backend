@@ -1,5 +1,5 @@
 using App.Authorization;
-using App.Identity.Data;
+using App.Identity;
 using App.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

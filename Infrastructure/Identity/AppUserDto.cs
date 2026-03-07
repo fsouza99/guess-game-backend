@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace App.Identity.Data;
+namespace App.Identity;
 
 public class AppUserDto
 {
