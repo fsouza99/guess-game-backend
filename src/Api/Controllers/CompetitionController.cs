@@ -1,0 +1,98 @@
+using App.Applications;
+using App.Infrastructure;
+using App.Globals;
+using App.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
+
+namespace App.Api;
+
+[Route("api/[controller]")]
+[ApiController]
+public class CompetitionController : ControllerBase
+{
+    private readonly CompetitionApp _app;
+
+    public CompetitionController(CompetitionApp app)
+    {
+        _app = app;
+    }
+
+    // GET: api/Competition/Meta
+    [HttpGet("Meta")]
+    public async Task<ActionResult<int>> GetMetadata(
+        int? formulaId, string? name, bool activeOnly)
+    {
+        Result<int> result = await _app.CountAsync(formulaId, name, activeOnly);
+        return result.Value;
+    }
+
+    // GET: api/Competition
+    [HttpGet]
+    public async Task<ActionResult<List<SimpleCompetitionView>>> GetCompetitions(
+        int? formulaId, string? name, bool activeOnly, int? offset, int? limit)
+    {
+        Result<List<SimpleCompetitionView>> result = await _app.ReadManyAsync(
+            formulaId, name, activeOnly, offset, limit);
+        return result.Value;
+    }
+
+    // GET: api/Competition/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CompetitionView>> GetCompetition(int id)
+    {
+        Result<CompetitionView> result = await _app.ReadOneAsync(id);
+        if (result.IsSuccess)
+        {
+            return result.Value;
+        }
+
+        return ApiErrorResponses.AppProblem(result.Error);
+    }
+
+    // PUT: api/Competition/5
+    [HttpPut("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
+    public async Task<IActionResult> PutCompetition(int id, CompetitionDto dto)
+    {
+        Result result = await _app.UpdateAsync(id, dto);
+        if (result.IsSuccess)
+        {
+            return NoContent();
+        }
+
+        return ApiErrorResponses.AppProblem(result.Error);
+    }
+
+    // POST: api/Competition
+    [HttpPost, Authorize(Policy = PolicyReference.AccreditedOnly)]
+    public async Task<ActionResult<CompetitionView>> PostCompetition(CompetitionDto dto)
+    {
+        Result<CompetitionView> result = await _app.CreateAsync(dto);
+        if (result.IsSuccess)
+        {
+            return CreatedAtAction(
+                nameof(GetCompetition), new { id = result.Value.ID }, result.Value);
+        }
+
+        return ApiErrorResponses.AppProblem(result.Error);
+    }
+
+    // DELETE: api/Competition/5
+    [HttpDelete("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
+    public async Task<IActionResult> DeleteCompetition(int id)
+    {
+        Result result = await _app.RemoveAsync(id);
+        if (result.IsSuccess)
+        {
+            return NoContent();
+        }
+
+        return ApiErrorResponses.AppProblem(result.Error);
+    }
+}
+

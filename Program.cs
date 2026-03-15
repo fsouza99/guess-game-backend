@@ -1,11 +1,8 @@
+using App.Api;
 using App.Applications;
-using App.Authorization;
-using App.Controllers;
-using App.Data;
-using App.Identity;
+using App.Globals;
+using App.Infrastructure;
 using App.Models;
-using App.Services;
-using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
