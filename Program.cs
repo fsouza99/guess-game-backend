@@ -44,19 +44,21 @@ if (useSwagger)
     builder.Services.AddSwaggerGen();
 }
 
-builder.Services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
+builder.Services.AddGameOpAuthorization();
 
 // Add related services of game observation, messaging and email.
 
 await builder.Services.AddMessagingService(builder.Configuration, useMsgServer);
 
-builder.Services.AddSingleton<IEmailAppMessager, EmailAppMessager>();
+builder.Services.AddEmailMessaging();
 
-builder.Services.AddScoped<IGameObserver, GameObserver>();
+builder.Services.AddGameObservation();
 
-// Add application services.
+// Add application and event-related services.
 
 builder.Services.AddApplications();
+builder.Services.AddEventHandlers();
+builder.Services.AddEventDispatcher();
 
 // Make user-related configurations.
 

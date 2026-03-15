@@ -194,7 +194,7 @@ public class GameApp
             return Result.Failure(GameErrors.NotFound());
         }
 
-        if (!(await UserCanDelete(user, game)))
+        if (!(await UserCanDeleteAsync(user, game)))
         {
             return Result.Failure(GameErrors.CannotDelete());
         }
@@ -233,7 +233,7 @@ public class GameApp
     }
 
     // Check whether current user can delete game: only owner and staff are allowed.
-    private async Task<bool> UserCanDelete(ClaimsPrincipal user, Game game)
+    private async Task<bool> UserCanDeleteAsync(ClaimsPrincipal user, Game game)
     {
         var authCheck = await _authService.AuthorizeAsync(user, game, Operations.Delete);
         return authCheck.Succeeded;

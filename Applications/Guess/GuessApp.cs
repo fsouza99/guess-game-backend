@@ -1,7 +1,6 @@
 using App.Authorization;
 using App.Data;
 using App.Models;
-using App.Services;
 using App.StaticTools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -18,16 +17,11 @@ public class GuessApp
 {
     private readonly AppDbContext _context;
     private readonly IAuthorizationService _authService;
-    private readonly IGameObserver _gameObserver;
 
-    public GuessApp(
-        AppDbContext context,
-        IAuthorizationService authService,
-        IGameObserver gameObserver)
+    public GuessApp(AppDbContext context, IAuthorizationService authService)
     {
-        _authService = authService;
         _context = context;
-        _gameObserver = gameObserver;
+        _authService = authService;
     }
 
     public async Task<Result<int>> CountAsync(string? gameId, string? name)
@@ -41,7 +35,7 @@ public class GuessApp
     {
         var query = QueryRefiner.Guesses(_context.Guess, gameId, name, offset, limit);
         var result = await query
-            .Select(f => new GuessView(f))
+            .Select(g => new GuessView(g))
             .ToListAsync();
         return result;
     }
@@ -112,9 +106,9 @@ public class GuessApp
         };
         _context.Guess.Add(guess);
 
-        // Save changes and notify game's owner of relevant events.
+        guess.Raise(new GuessCreatedEvent(game, guess));
+
         await _context.SaveChangesAsync();
-        await _gameObserver.WatchAsync(game);
 
         return new GuessView(guess);
     }

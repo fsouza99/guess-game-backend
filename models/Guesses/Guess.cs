@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace App.Models;
 
 [PrimaryKey(nameof(GameID), nameof(Number))]
-public class Guess
+public class Guess : Entity
 {
     public DateTime Creation { get; set; }
 
