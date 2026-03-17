@@ -26,7 +26,7 @@ public static class GuessErrors
 
     public static Error UnfitData() => Error.BadRequest(
         "Guess.UnfitData",
-        "Given JSON data does not match template.");
+        "Given JSON data does not match associated template.");
 
     public static Error WrongPasscode() => Error.Forbidden(
         "Guess.WrongPasscode",

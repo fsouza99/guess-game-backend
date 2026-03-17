@@ -26,7 +26,7 @@ public static class GameErrors
 
     public static Error UnfitData() => Error.BadRequest(
         "Game.UnfitData",
-        "Given JSON data does not match associated template.");
+        "Given JSON scoring rules do not match associated template.");
 
     public static Error UpdateConflict() => Error.Conflict(
         "Game.UpdateConflict",

@@ -6,7 +6,7 @@ public static class FormulaErrors
 {
     public static Error BadDataTemplate() => Error.BadRequest(
         "Formula.BadDataTemplate",
-        "Given JSON template is unacceptable.");
+        "Given JSON data template is unacceptable.");
 
     public static Error UpdateConflict() => Error.Conflict(
         "Formula.UpdateConflict",
