@@ -5,8 +5,7 @@ namespace App.Infrastructure;
 public static class DatabaseWorkloadsExtensions
 {
     // Initialize the database by creating the models and adding placeholder data.
-    public static async Task InitializeDatabaseAsync(
-        this WebApplication app, bool useDbServer)
+    public static async Task InitializeDatabaseAsync(this WebApplication app, bool useDbServer)
     {
         using (var scope = app.Services.CreateScope())
         {

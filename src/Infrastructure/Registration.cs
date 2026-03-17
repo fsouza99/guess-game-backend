@@ -1,3 +1,4 @@
+using App.Applications;
 using App.Globals;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,8 @@ public static class InfrastructureServicesRegistration
                 throw new InvalidOperationException($"Connection string '{connStrKey}' not found.");
             services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
         }
+
+        services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
         return services;
     }

@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace App.Applications;
 
-public class GameApp(AppDbContext context, IAuthorizationService authService) : IGameApp
+public class GameApp(IAppDbContext context, IAuthorizationService authService) : IGameApp
 {
     public static readonly int MinSubSpan = 5;
 

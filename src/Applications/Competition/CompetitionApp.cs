@@ -1,12 +1,11 @@
 using App.Globals;
-using App.Infrastructure;
 using App.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace App.Applications;
 
-public class CompetitionApp(AppDbContext context) : ICompetitionApp
+public class CompetitionApp(IAppDbContext context) : ICompetitionApp
 {
     public async Task<Result<int>> CountAsync(int? formulaId, string? name, bool activeOnly)
     {

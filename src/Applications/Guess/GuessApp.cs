@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace App.Applications;
 
-public class GuessApp(AppDbContext context, IAuthorizationService authService) : IGuessApp
+public class GuessApp(IAppDbContext context, IAuthorizationService authService) : IGuessApp
 {
     public async Task<Result<int>> CountAsync(string? gameId, string? name)
     {
