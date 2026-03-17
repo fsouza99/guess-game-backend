@@ -1,16 +1,13 @@
-using App.Api;
-using App.Applications;
-using App.Infrastructure;
+using App.Globals;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.Globals;
+namespace App.Infrastructure;
 
-public static class ServiceCollectionExtensions
+public static class InfrastructureServicesRegistration
 {
-    // Add database context service for user-selected provider.
     public static IServiceCollection AddDbContext(
         this IServiceCollection services, IConfiguration configuration, bool useDbServer)
     {
@@ -35,17 +32,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddApplications(this IServiceCollection services)
-    {
-        services.Scan(scan => scan
-            .FromAssemblyOf<IApp>()
-            .AddClasses(classes => classes.AssignableTo<IApp>())
-            .AsImplementedInterfaces()
-            .WithScopedLifetime());
-        return services;
-    }
-
-    // Add messaging service as singleton, either as effective or stub object.
     public static async Task<IServiceCollection> AddMessaging(
         this IServiceCollection services, IConfiguration configuration, bool useMsgServer)
     {
@@ -87,21 +73,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection ConfigureIdentity(this IServiceCollection services)
-    {
-        services
-            .Configure<IdentityOptions>(options =>
-                {
-                    // All the following do not equal their defaults.
-                    options.User.RequireUniqueEmail = true;
-                    options.Password.RequireLowercase = false;
-                    options.Password.RequireNonAlphanumeric = false;
-                })
-            .ConfigureApplicationCookie(options => { options.Cookie.Name = "GuessGame"; });
-        return services;
-    }
-
-    // Add authotization policies, endpoints and handlers.
     public static IServiceCollection AddAppAuthorization(this IServiceCollection services)
     {
         services
@@ -117,8 +88,44 @@ public static class ServiceCollectionExtensions
             .AddEntityFrameworkStores<AppDbContext>();
 
         services.ConfigureIdentity();
+
         services.AddAuthorizationHandlers();
 
+        return services;
+    }
+
+    public static async Task<IServiceCollection> AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        bool useDbServer,
+        bool useMsgServer)
+    {
+        services.AddAuthentication();
+
+        await services.AddMessaging(configuration, useMsgServer);
+
+        services
+            .AddEmailMessaging()
+            .AddGameObservation()
+            .AddEventHandlers()
+            .AddEventDispatcher()
+            .AddDbContext(configuration, useDbServer)
+            .AddAppAuthorization();
+
+        return services;
+    }
+
+    private static IServiceCollection ConfigureIdentity(this IServiceCollection services)
+    {
+        services
+            .Configure<IdentityOptions>(options =>
+                {
+                    // All the following do not equal their defaults.
+                    options.User.RequireUniqueEmail = true;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                })
+            .ConfigureApplicationCookie(options => { options.Cookie.Name = "GuessGame"; });
         return services;
     }
 }

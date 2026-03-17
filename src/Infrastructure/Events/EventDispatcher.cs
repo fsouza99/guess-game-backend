@@ -4,7 +4,8 @@ using System.Collections.Concurrent;
 
 namespace App.Infrastructure;
 
-internal sealed class DomainEventsDispatcher(IServiceProvider serviceProvider) : IDomainEventsDispatcher
+internal sealed class DomainEventsDispatcher(
+    IServiceProvider serviceProvider) : IDomainEventsDispatcher
 {
     private static readonly ConcurrentDictionary<Type, Type> HandlerTypeDict = new();
     private static readonly ConcurrentDictionary<Type, Type> WrapperTypeDict = new();

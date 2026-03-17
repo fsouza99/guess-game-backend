@@ -22,7 +22,8 @@ public class DbInitializer
 
     private void AddJsonData<T>(string filename, DbSet<T> dbSet) where T : class
     {
-        string data = File.ReadAllText($"src\\Infrastructure\\Placeholders\\{filename}.json");
+        string filepath = $"src\\Infrastructure\\Database\\Placeholders\\{filename}.json";
+        string data = File.ReadAllText(filepath);
         List<T> objs = JsonSerializer.Deserialize<List<T>>(data)!;
         dbSet.AddRange(objs);
     }
