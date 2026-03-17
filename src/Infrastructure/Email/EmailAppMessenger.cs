@@ -1,11 +1,11 @@
 namespace App.Infrastructure;
 
-public class EmailAppMessager : IEmailAppMessager
+public class EmailAppMessenger : IEmailAppMessenger
 {
     private readonly IMessagingService _messagingService;
     private readonly string _routingKey;
 
-    public EmailAppMessager(IMessagingService messageService, IConfiguration config)
+    public EmailAppMessenger(IMessagingService messageService, IConfiguration config)
     {
         _messagingService = messageService;
         _routingKey = config["Messaging:EmailQueue"]!;

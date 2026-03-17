@@ -132,7 +132,7 @@ public class GameApp(IAppDbContext context, IAuthorizationService authService) :
 
         if (!RulesMatchTemplate(dto.ScoringRules, competition!.Formula.DataTemplate))
         {
-            return Result.Failure<GameView>(GameErrors.UnfitData());
+            return Result.Failure<GameView>(GameErrors.UnfitScoringRules());
         }
 
         var compData = JsonDocument.Parse(competition.Data);

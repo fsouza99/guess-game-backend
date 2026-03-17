@@ -24,7 +24,7 @@ public static class GameErrors
         "Game.TooEarlySubsDeadline",
         $"If given, submission deadline must be at least {GameApp.MinSubSpan} minutes in future.");
 
-    public static Error UnfitData() => Error.BadRequest(
+    public static Error UnfitScoringRules() => Error.BadRequest(
         "Game.UnfitData",
         "Given JSON scoring rules do not match associated template.");
 

@@ -1,7 +1,7 @@
 namespace App.Infrastructure;
 
 /* Pushes messages to email application requesting it to send user notifications. */
-public interface IEmailAppMessager
+public interface IEmailAppMessenger
 {
     public Task EmailGameFullnessAsync(
         int maxGuessCount,

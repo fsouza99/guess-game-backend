@@ -1,4 +1,3 @@
-using App.Applications;
 using App.Globals;
 using App.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
