@@ -3,36 +3,23 @@ using App.Infrastructure;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System;
 
 namespace App.Applications;
 
-public class GuessApp
+public class GuessApp(AppDbContext context, IAuthorizationService authService) : IGuessApp
 {
-    private readonly AppDbContext _context;
-    private readonly IAuthorizationService _authService;
-
-    public GuessApp(AppDbContext context, IAuthorizationService authService)
-    {
-        _context = context;
-        _authService = authService;
-    }
-
     public async Task<Result<int>> CountAsync(string? gameId, string? name)
     {
-        var query = QueryRefiner.Guesses(_context.Guess, gameId, name);
+        var query = QueryRefiner.Guesses(context.Guess, gameId, name);
         return await query.CountAsync();
     }
 
     public async Task<Result<List<GuessView>>> ReadManyAsync(
         string? gameId, string? name, int? offset, int? limit)
     {
-        var query = QueryRefiner.Guesses(_context.Guess, gameId, name, offset, limit);
+        var query = QueryRefiner.Guesses(context.Guess, gameId, name, offset, limit);
         var result = await query
             .Select(g => new GuessView(g))
             .ToListAsync();
@@ -41,7 +28,7 @@ public class GuessApp
 
     public async Task<Result<GuessView>> ReadOneAsync(string gameId, int number)
     {
-        var guess = await _context.Guess.FindAsync(gameId, number);
+        var guess = await context.Guess.FindAsync(gameId, number);
         if (guess is null)
         {
             return Result.Failure<GuessView>(GuessErrors.NotFound());
@@ -53,7 +40,7 @@ public class GuessApp
     public async Task<Result<GuessView>> CreateAsync(GuessDto dto)
     {
         // Check game.
-        var game = await _context.Game
+        var game = await context.Game
             .Include(g => g.Competition)
             .ThenInclude(c => c.Formula)
             .FirstOrDefaultAsync(g => g.ID == dto.GameID);
@@ -76,7 +63,7 @@ public class GuessApp
         }
 
         // Check guess count.
-        int gameGuessCount = await _context.Guess
+        int gameGuessCount = await context.Guess
             .Where(g => g.GameID == game.ID)
             .CountAsync();
         if (gameGuessCount >= game.MaxGuessCount)
@@ -103,18 +90,18 @@ public class GuessApp
                 JsonDocument.Parse(game.Competition.Data),
                 JsonDocument.Parse(game.ScoringRules))
         };
-        _context.Guess.Add(guess);
+        context.Guess.Add(guess);
 
         guess.Raise(new GuessCreatedEvent(game, guess));
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new GuessView(guess);
     }
 
     public async Task<Result> RemoveAsync(string gameId, int number, ClaimsPrincipal user)
     {
-        var guess = await _context.Guess
+        var guess = await context.Guess
             .Where(g => g.GameID == gameId && g.Number == number)
             .FirstOrDefaultAsync();
         if (guess is null)
@@ -127,16 +114,16 @@ public class GuessApp
             return Result.Failure(GuessErrors.CannotDelete());
         }
 
-        _context.Guess.Remove(guess);
-        await _context.SaveChangesAsync();
+        context.Guess.Remove(guess);
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }
 
     private async Task<bool> UserCanDelete(ClaimsPrincipal user, string gameId)
     {
-        var game = await _context.Game.FindAsync(gameId);
-        var authCheck = await _authService.AuthorizeAsync(user, game, Operations.Delete);
+        var game = await context.Game.FindAsync(gameId);
+        var authCheck = await authService.AuthorizeAsync(user, game, Operations.Delete);
         return authCheck.Succeeded;
     }
 }

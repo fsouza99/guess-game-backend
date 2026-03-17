@@ -1,34 +1,22 @@
 using App.Applications;
-using App.Infrastructure;
 using App.Globals;
+using App.Infrastructure;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
 
 namespace App.Api;
 
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(Policy = PolicyReference.AccreditedOnly)]
-public class FormulaController : ControllerBase
+public class FormulaController(IFormulaApp app) : ControllerBase
 {
-    private readonly FormulaApp _app;
-
-    public FormulaController(FormulaApp app)
-    {
-        _app = app;
-    }
-
     // GET: api/Formula/Meta
     [HttpGet("Meta")]
     public async Task<ActionResult<int>> GetMetadata(string? name)
     {
-        Result<int> result = await _app.CountAsync(name);
+        Result<int> result = await app.CountAsync(name);
         return result.Value;
     }
 
@@ -37,7 +25,7 @@ public class FormulaController : ControllerBase
     public async Task<ActionResult<List<FormulaView>>> GetFormulas(
         string? name, int? offset, int? limit)
     {
-        Result<List<FormulaView>> result = await _app.ReadManyAsync(
+        Result<List<FormulaView>> result = await app.ReadManyAsync(
             name, offset, limit);
         return result.Value;
     }
@@ -46,7 +34,7 @@ public class FormulaController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<FormulaView>> GetFormula(int id)
     {
-        Result<FormulaView> result = await _app.ReadOneAsync(id);
+        Result<FormulaView> result = await app.ReadOneAsync(id);
         if (result.IsSuccess)
         {
             return result.Value;
@@ -59,7 +47,7 @@ public class FormulaController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> PutFormula(int id, FormulaDto dto)
     {
-        Result result = await _app.UpdateAsync(id, dto);
+        Result result = await app.UpdateAsync(id, dto);
         if (result.IsSuccess)
         {
             return NoContent();
@@ -72,7 +60,7 @@ public class FormulaController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<FormulaView>> PostFormula(FormulaDto dto)
     {
-        Result<FormulaView> result = await _app.CreateAsync(dto);
+        Result<FormulaView> result = await app.CreateAsync(dto);
         if (result.IsSuccess)
         {
             return CreatedAtAction(
@@ -86,7 +74,7 @@ public class FormulaController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteFormula(int id)
     {
-        Result result = await _app.RemoveAsync(id);
+        Result result = await app.RemoveAsync(id);
         if (result.IsSuccess)
         {
             return NoContent();

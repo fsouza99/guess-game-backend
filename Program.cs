@@ -3,11 +3,6 @@ using App.Applications;
 using App.Globals;
 using App.Infrastructure;
 using App.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,69 +12,40 @@ bool useDbServer = args.Contains("--dbserver");
 bool useMsgServer = args.Contains("--msgserver");
 bool useSwagger = args.Contains("--swagger");
 
-// Add services on auth operations, database, access and testing.
+// Add services on database, auth operations and controllers.
+
+builder.Services.AddDbContext(builder.Configuration, useDbServer);
 
 builder.Services.AddAuthentication();
 
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy(PolicyReference.AccreditedOnly, policy =>
-        policy.RequireRole(RoleReference.Admin, RoleReference.Staff))
-    .AddPolicy(PolicyReference.AdminOnly, policy =>
-        policy.RequireRole(RoleReference.Admin));
+builder.Services.AddAppAuthorization();
 
 builder.Services.AddControllers();
 
-builder.Services.AddAppDbContext(builder.Configuration, useDbServer);
-
-builder.Services.AddIdentityApiEndpoints<AppUser>()
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>();
-
-if (useSwagger)
-{
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-}
-
-builder.Services.AddGameOpAuthorization();
-
 // Add related services of game observation, messaging and email.
 
-await builder.Services.AddMessagingService(builder.Configuration, useMsgServer);
+await builder.Services.AddMessaging(builder.Configuration, useMsgServer);
 
-builder.Services.AddEmailMessaging();
-
-builder.Services.AddGameObservation();
+builder.Services
+    .AddEmailMessaging()
+    .AddGameObservation();
 
 // Add application and event-related services.
 
-builder.Services.AddApplications();
-builder.Services.AddEventHandlers();
-builder.Services.AddEventDispatcher();
-
-// Make user-related configurations.
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    // All the following do not equal their defaults.
-    options.User.RequireUniqueEmail = true;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireNonAlphanumeric = false;
-});
-
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.Name = "GuessGame";
-});
-
-// Build app.
+builder.Services
+    .AddApplications()
+    .AddEventHandlers()
+    .AddEventDispatcher();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Add Swagger if applicable.
 
 if (app.Environment.IsDevelopment() && useSwagger)
 {
+    builder.Services
+        .AddEndpointsApiExplorer()
+        .AddSwaggerGen();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -88,7 +54,7 @@ if (app.Environment.IsDevelopment() && useSwagger)
 
 await app.InitializeDatabaseAsync(useDbServer);
 
-// Settle middleware and mappings.
+// Add middleware, set mappings and run.
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -96,7 +62,5 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapIdentityApi<AppUser>();
 app.MapExtraIdentityEndpoints();
-
-// Run app.
 
 app.Run();

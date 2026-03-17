@@ -22,8 +22,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Game> Game { get; set; } = default!;
     public DbSet<Guess> Guess { get; set; } = default!;
 
-    public override async Task<int> SaveChangesAsync(
-        CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         int result = await base.SaveChangesAsync(cancellationToken);
 

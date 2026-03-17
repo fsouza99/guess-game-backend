@@ -3,32 +3,18 @@ using App.Infrastructure;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System;
 
 namespace App.Applications;
 
-public class GameApp
+public class GameApp(AppDbContext context, IAuthorizationService authService) : IGameApp
 {
-    private readonly AppDbContext _context;
-    private readonly IAuthorizationService _authService;
     public static readonly int MinSubSpan = 5;
 
-    public GameApp(AppDbContext context, IAuthorizationService authorizationService)
+    public async Task<Result<int>> CountAsync(int? competitionId, string? name, bool publicOnly)
     {
-        _authService = authorizationService;
-        _context = context;
-    }
-
-    public async Task<Result<int>> CountAsync(
-        int? competitionId, string? name, bool publicOnly)
-    {
-        var query = QueryRefiner.Games(
-            _context.Game, competitionId, null, name, publicOnly);
+        var query = QueryRefiner.Games(context.Game, competitionId, null, name, publicOnly);
         return await query.CountAsync();
     }
 
@@ -36,13 +22,13 @@ public class GameApp
         ClaimsPrincipal user, int? competitionId, string? name, bool publicOnly)
     {
         var query = QueryRefiner.Games(
-            _context.Game, competitionId, user.GetUserID(), name, publicOnly);
+            context.Game, competitionId, user.GetUserID(), name, publicOnly);
         return await query.CountAsync();
     }
 
     public async Task<Result<GameView>> ReadOneAsync(string id)
     {
-        var game = await _context.Game
+        var game = await context.Game
             .Include(g => g.AppUser)
             .Include(g => g.Competition)
             .FirstOrDefaultAsync(g => g.ID == id);
@@ -55,15 +41,10 @@ public class GameApp
     }
 
     public async Task<Result<List<SimpleGameView>>> ReadManyAsync(
-        int? competitionId,
-        string? userId,
-        string? name,
-        bool publicOnly,
-        int? offset,
-        int? limit)
+        int? competitionId, string? userId, string? name, bool publicOnly, int? offset, int? limit)
     {
         var query = QueryRefiner.Games(
-            _context.Game, competitionId, userId, name, publicOnly, offset, limit);
+            context.Game, competitionId, userId, name, publicOnly, offset, limit);
         var result = await query
             .Include(g => g.Competition)
             .Include(g => g.AppUser)
@@ -81,13 +62,7 @@ public class GameApp
         int? limit)
     {
         var query = QueryRefiner.Games(
-            _context.Game,
-            competitionId,
-            user.GetUserID(),
-            name,
-            publicOnly,
-            offset,
-            limit);
+            context.Game, competitionId, user.GetUserID(), name, publicOnly, offset, limit);
         var result = await query
             .Include(g => g.Competition)
             .Include(g => g.AppUser)
@@ -98,7 +73,7 @@ public class GameApp
 
     public async Task<Result> UpdateAsync(string id, GameDto dto, ClaimsPrincipal user)
     {
-        var game = await _context.Game.FindAsync(id);
+        var game = await context.Game.FindAsync(id);
         if (game is null)
         {
             return Result.Failure(GameErrors.NotFound());
@@ -121,11 +96,11 @@ public class GameApp
         game.Passcode = dto.Passcode;
         game.SubsDeadline = dto.SubsDeadline;
 
-        _context.Entry(game).State = EntityState.Modified;
+        context.Entry(game).State = EntityState.Modified;
 
         try
         {
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -141,7 +116,7 @@ public class GameApp
 
     public async Task<Result<GameView>> CreateAsync(GameDto dto, ClaimsPrincipal user)
     {
-        var competition = await _context.Competition
+        var competition = await context.Competition
             .Include(c => c.Formula)
             .FirstOrDefaultAsync(c => c.ID == dto.CompetitionID);
         if (!CompetitionIsValid(competition))
@@ -175,18 +150,18 @@ public class GameApp
             ScoringRules = JsonSerializer.Serialize(dto.ScoringRules),
             SubsDeadline = dto.SubsDeadline
         };
-        _context.Game.Add(game);
-        await _context.SaveChangesAsync();
+        context.Game.Add(game);
+        await context.SaveChangesAsync();
 
         // Load owner AppUser on context so view object can be built.
-        AppUser gameOwner = (await _context.AppUser.FindAsync(game.AppUserID))!;
+        AppUser gameOwner = (await context.AppUser.FindAsync(game.AppUserID))!;
 
         return new GameView(game);
     }
 
     public async Task<Result> RemoveAsync(string id, ClaimsPrincipal user)
     {
-        var game = await _context.Game.FindAsync(id);
+        var game = await context.Game.FindAsync(id);
         if (game is null)
         {
             return Result.Failure(GameErrors.NotFound());
@@ -197,15 +172,15 @@ public class GameApp
             return Result.Failure(GameErrors.CannotDelete());
         }
 
-        _context.Game.Remove(game);
-        await _context.SaveChangesAsync();
+        context.Game.Remove(game);
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }
 
     private bool ItemExists(string id)
     {
-        return _context.Game.Any(g => g.ID == id);
+        return context.Game.Any(g => g.ID == id);
     }
 
     private bool DeadlineUpdateIsValid(DateTime? newDeadline, DateTime? currDeadline)
@@ -233,14 +208,14 @@ public class GameApp
     // Check whether current user can delete game: only owner and staff are allowed.
     private async Task<bool> UserCanDeleteAsync(ClaimsPrincipal user, Game game)
     {
-        var authCheck = await _authService.AuthorizeAsync(user, game, Operations.Delete);
+        var authCheck = await authService.AuthorizeAsync(user, game, Operations.Delete);
         return authCheck.Succeeded;
     }
 
     // Check whether current user can update game: only owner is allowed.
     private async Task<bool> UserCanUpdateAsync(ClaimsPrincipal user, Game game)
     {
-        var authCheck = await _authService.AuthorizeAsync(user, game, Operations.Update);
+        var authCheck = await authService.AuthorizeAsync(user, game, Operations.Update);
         return authCheck.Succeeded;
     }
 }

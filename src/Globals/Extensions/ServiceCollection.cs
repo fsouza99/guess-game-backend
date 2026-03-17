@@ -1,7 +1,9 @@
+using App.Api;
 using App.Applications;
 using App.Infrastructure;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.Globals;
@@ -9,36 +11,42 @@ namespace App.Globals;
 public static class ServiceCollectionExtensions
 {
     // Add database context service for user-selected provider.
-    public static IServiceCollection AddAppDbContext(
+    public static IServiceCollection AddDbContext(
         this IServiceCollection services, IConfiguration configuration, bool useDbServer)
     {
         if (useDbServer)
         {
             const string connStrKey = "SqlServerEnvVarKey";
             string envVarKey = configuration.GetConnectionString(connStrKey) ??
-                throw new InvalidOperationException(
-                    $"Connection string '{connStrKey}' not found.");
+                throw new InvalidOperationException($"Connection string '{connStrKey}' not found.");
             string connectionString = configuration[envVarKey] ??
                 throw new InvalidOperationException(
                     $"Environment variable '{envVarKey}' not found.");
-            services.AddDbContext<AppDbContext>(
-                options => options.UseSqlServer(connectionString));
+            services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
         }
         else
         {
             const string connStrKey = "Sqlite";
             string connectionString = configuration.GetConnectionString(connStrKey) ??
-                throw new InvalidOperationException(
-                    $"Connection string '{connStrKey}' not found.");
-            services.AddDbContext<AppDbContext>(
-                options => options.UseSqlite(connectionString));
+                throw new InvalidOperationException($"Connection string '{connStrKey}' not found.");
+            services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
         }
 
         return services;
     }
 
+    public static IServiceCollection AddApplications(this IServiceCollection services)
+    {
+        services.Scan(scan => scan
+            .FromAssemblyOf<IApp>()
+            .AddClasses(classes => classes.AssignableTo<IApp>())
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
+        return services;
+    }
+
     // Add messaging service as singleton, either as effective or stub object.
-    public static async Task<IServiceCollection> AddMessagingService(
+    public static async Task<IServiceCollection> AddMessaging(
         this IServiceCollection services, IConfiguration configuration, bool useMsgServer)
     {
         IMessagingService messagingService = useMsgServer
@@ -46,16 +54,6 @@ public static class ServiceCollectionExtensions
             : MessagingServiceFactory.CreateEmpty();
 
         services.AddSingleton(messagingService);
-        return services;
-    }
-
-    public static IServiceCollection AddApplications(this IServiceCollection services)
-    {
-        services.AddScoped<FormulaApp>();
-        services.AddScoped<CompetitionApp>();
-        services.AddScoped<GameApp>();
-        services.AddScoped<GuessApp>();
-
         return services;
     }
 
@@ -83,9 +81,44 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddGameOpAuthorization(this IServiceCollection services)
+    public static IServiceCollection AddAuthorizationHandlers(this IServiceCollection services)
     {
         services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
+        return services;
+    }
+
+    public static IServiceCollection ConfigureIdentity(this IServiceCollection services)
+    {
+        services
+            .Configure<IdentityOptions>(options =>
+                {
+                    // All the following do not equal their defaults.
+                    options.User.RequireUniqueEmail = true;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                })
+            .ConfigureApplicationCookie(options => { options.Cookie.Name = "GuessGame"; });
+        return services;
+    }
+
+    // Add authotization policies, endpoints and handlers.
+    public static IServiceCollection AddAppAuthorization(this IServiceCollection services)
+    {
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(PolicyReference.AccreditedOnly, policy =>
+                policy.RequireRole(RoleReference.Admin, RoleReference.Staff))
+            .AddPolicy(PolicyReference.AdminOnly, policy =>
+                policy.RequireRole(RoleReference.Admin));
+
+        services
+            .AddIdentityApiEndpoints<AppUser>()
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>();
+
+        services.ConfigureIdentity();
+        services.AddAuthorizationHandlers();
+
         return services;
     }
 }

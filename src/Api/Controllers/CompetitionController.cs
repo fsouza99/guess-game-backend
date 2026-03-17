@@ -1,34 +1,21 @@
 using App.Applications;
-using App.Infrastructure;
 using App.Globals;
+using App.Infrastructure;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
 
 namespace App.Api;
 
 [Route("api/[controller]")]
 [ApiController]
-public class CompetitionController : ControllerBase
+public class CompetitionController(ICompetitionApp app) : ControllerBase
 {
-    private readonly CompetitionApp _app;
-
-    public CompetitionController(CompetitionApp app)
-    {
-        _app = app;
-    }
-
     // GET: api/Competition/Meta
     [HttpGet("Meta")]
-    public async Task<ActionResult<int>> GetMetadata(
-        int? formulaId, string? name, bool activeOnly)
+    public async Task<ActionResult<int>> GetMetadata(int? formulaId, string? name, bool activeOnly)
     {
-        Result<int> result = await _app.CountAsync(formulaId, name, activeOnly);
+        Result<int> result = await app.CountAsync(formulaId, name, activeOnly);
         return result.Value;
     }
 
@@ -37,7 +24,7 @@ public class CompetitionController : ControllerBase
     public async Task<ActionResult<List<SimpleCompetitionView>>> GetCompetitions(
         int? formulaId, string? name, bool activeOnly, int? offset, int? limit)
     {
-        Result<List<SimpleCompetitionView>> result = await _app.ReadManyAsync(
+        Result<List<SimpleCompetitionView>> result = await app.ReadManyAsync(
             formulaId, name, activeOnly, offset, limit);
         return result.Value;
     }
@@ -46,7 +33,7 @@ public class CompetitionController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<CompetitionView>> GetCompetition(int id)
     {
-        Result<CompetitionView> result = await _app.ReadOneAsync(id);
+        Result<CompetitionView> result = await app.ReadOneAsync(id);
         if (result.IsSuccess)
         {
             return result.Value;
@@ -59,7 +46,7 @@ public class CompetitionController : ControllerBase
     [HttpPut("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
     public async Task<IActionResult> PutCompetition(int id, CompetitionDto dto)
     {
-        Result result = await _app.UpdateAsync(id, dto);
+        Result result = await app.UpdateAsync(id, dto);
         if (result.IsSuccess)
         {
             return NoContent();
@@ -72,7 +59,7 @@ public class CompetitionController : ControllerBase
     [HttpPost, Authorize(Policy = PolicyReference.AccreditedOnly)]
     public async Task<ActionResult<CompetitionView>> PostCompetition(CompetitionDto dto)
     {
-        Result<CompetitionView> result = await _app.CreateAsync(dto);
+        Result<CompetitionView> result = await app.CreateAsync(dto);
         if (result.IsSuccess)
         {
             return CreatedAtAction(
@@ -86,7 +73,7 @@ public class CompetitionController : ControllerBase
     [HttpDelete("{id}"), Authorize(Policy = PolicyReference.AccreditedOnly)]
     public async Task<IActionResult> DeleteCompetition(int id)
     {
-        Result result = await _app.RemoveAsync(id);
+        Result result = await app.RemoveAsync(id);
         if (result.IsSuccess)
         {
             return NoContent();
@@ -95,4 +82,3 @@ public class CompetitionController : ControllerBase
         return ApiErrorResponses.AppProblem(result.Error);
     }
 }
-

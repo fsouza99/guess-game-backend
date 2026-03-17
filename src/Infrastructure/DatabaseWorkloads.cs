@@ -40,7 +40,6 @@ public static class DatabaseWorkloadsExtensions
                 // If using SQLite, insert placeholder data for all models.
                 await dbinit.AddUserAndBusinessDataToContext();
             }
-            return;
         }
     }
 }

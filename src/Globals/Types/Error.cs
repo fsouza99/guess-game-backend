@@ -4,8 +4,7 @@ public record Error
 {
     public static readonly Error None = new (0, string.Empty, string.Empty);
 
-    public static readonly Error NullValue = new (
-        0, "General.Null", "Null value was provided.");
+    public static readonly Error NullValue = new (0, "General.Null", "Null value was provided.");
 
     public Error(int statusCode, string title, string description)
     {

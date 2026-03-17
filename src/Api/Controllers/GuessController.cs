@@ -1,33 +1,20 @@
 using App.Applications;
-using App.Infrastructure;
 using App.Globals;
 using App.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
 
 namespace App.Api;
 
 [Route("api/[controller]")]
 [ApiController]
-public class GuessController : ControllerBase
+public class GuessController(IGuessApp app) : ControllerBase
 {
-    private readonly GuessApp _app;
-
-    public GuessController(GuessApp app)
-    {
-        _app = app;
-    }
-
     // GET: api/Guess/Meta
     [HttpGet("Meta")]
     public async Task<ActionResult<int>> GetMetadata(string? gameId, string? name)
     {
-        Result<int> result = await _app.CountAsync(gameId, name);
+        Result<int> result = await app.CountAsync(gameId, name);
         return result.Value;
     }
 
@@ -36,7 +23,7 @@ public class GuessController : ControllerBase
     public async Task<ActionResult<List<GuessView>>> GetGuesses(
         string? gameId, string? name, int? offset, int? limit)
     {
-        Result<List<GuessView>> result = await _app.ReadManyAsync(
+        Result<List<GuessView>> result = await app.ReadManyAsync(
             gameId, name, offset, limit);
         return result.Value;
     }
@@ -45,7 +32,7 @@ public class GuessController : ControllerBase
     [HttpGet("{gameId}/{number}")]
     public async Task<ActionResult<GuessView>> GetGuess(string gameId, int number)
     {
-        Result<GuessView> result = await _app.ReadOneAsync(gameId, number);
+        Result<GuessView> result = await app.ReadOneAsync(gameId, number);
         if (result.IsSuccess)
         {
             return result.Value;
@@ -58,7 +45,7 @@ public class GuessController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<GuessView>> PostGuess(GuessDto dto)
     {
-        Result<GuessView> result = await _app.CreateAsync(dto);
+        Result<GuessView> result = await app.CreateAsync(dto);
         if (result.IsSuccess)
         {
             return CreatedAtAction(
@@ -74,7 +61,7 @@ public class GuessController : ControllerBase
     [HttpDelete("{gameId}/{number}"), Authorize]
     public async Task<ActionResult> DeleteGuess(string gameId, int number)
     {
-        Result result = await _app.RemoveAsync(gameId, number, User);
+        Result result = await app.RemoveAsync(gameId, number, User);
         if (result.IsSuccess)
         {
             return NoContent();
@@ -83,4 +70,3 @@ public class GuessController : ControllerBase
         return ApiErrorResponses.AppProblem(result.Error);
     }
 }
-

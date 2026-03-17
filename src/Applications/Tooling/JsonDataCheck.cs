@@ -13,8 +13,7 @@ public static class JsonDataChecker
     /// The template element is expected to express the size of the array of strings
     /// the element should be.
     /// </summary>
-    private static bool ElementOnTemplate(
-        JsonElement element, JsonElement template)
+    private static bool ElementOnTemplate(JsonElement element, JsonElement template)
     {
         int expectedSize = template.GetInt32();
 
@@ -146,8 +145,7 @@ public static class JsonDataChecker
     /// The JSON of the template is expected to be valid.
     /// Values can only be integers in the [0,1000] interval.
     /// </summary>
-    public static bool ScoringRulesOnTemplate(
-        JsonDocument rules, JsonDocument template)
+    public static bool ScoringRulesOnTemplate(JsonDocument rules, JsonDocument template)
     {
         JsonElement rulesRoot = rules.RootElement;
         JsonElement templateRoot = template.RootElement;

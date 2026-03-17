@@ -43,8 +43,7 @@ public class Result<T> : Result
     [NotNull]
     public T Value => IsSuccess
         ? _value!
-        : throw new InvalidOperationException(
-            "The value of a failure result can't be accessed.");
+        : throw new InvalidOperationException("The value of a failure result can't be accessed.");
 
     public static implicit operator Result<T>(T? value) =>
         value is null ? Failure<T>(Error.NullValue) : Success<T>(value);

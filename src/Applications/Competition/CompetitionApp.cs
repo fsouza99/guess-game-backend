@@ -2,28 +2,15 @@ using App.Globals;
 using App.Infrastructure;
 using App.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System;
 
 namespace App.Applications;
 
-public class CompetitionApp
+public class CompetitionApp(AppDbContext context) : ICompetitionApp
 {
-    private readonly AppDbContext _context;
-
-    public CompetitionApp(AppDbContext context)
+    public async Task<Result<int>> CountAsync(int? formulaId, string? name, bool activeOnly)
     {
-        _context = context;
-    }
-
-    public async Task<Result<int>> CountAsync(
-        int? formulaId, string? name, bool activeOnly)
-    {
-        var query = QueryRefiner.Competitions(
-            _context.Competition, formulaId, name, activeOnly);
+        var query = QueryRefiner.Competitions(context.Competition, formulaId, name, activeOnly);
         var count = await query.CountAsync();
         return count;
     }
@@ -32,7 +19,7 @@ public class CompetitionApp
         int? formulaId, string? name, bool activeOnly, int? offset, int? limit)
     {
         var query = QueryRefiner.Competitions(
-            _context.Competition, formulaId, name, activeOnly, offset, limit);
+            context.Competition, formulaId, name, activeOnly, offset, limit);
         var result = await query
             .Select(c => new SimpleCompetitionView(c))
             .ToListAsync();
@@ -41,7 +28,7 @@ public class CompetitionApp
 
     public async Task<Result<CompetitionView>> ReadOneAsync(int id)
     {
-        var competition = await _context.Competition.FindAsync(id);
+        var competition = await context.Competition.FindAsync(id);
         if (competition is null)
         {
             return Result.Failure<CompetitionView>(CompetitionErrors.NotFound());
@@ -52,7 +39,7 @@ public class CompetitionApp
 
     public async Task<Result> UpdateAsync(int id, CompetitionDto dto)
     {
-        var competition = await _context.Competition.FindAsync(id);
+        var competition = await context.Competition.FindAsync(id);
         if (competition is null)
         {
             return Result.Failure(CompetitionErrors.NotFound());
@@ -78,11 +65,11 @@ public class CompetitionApp
         competition.Start = dto.Start;
         competition.End = dto.End;
 
-        _context.Entry(competition).State = EntityState.Modified;
+        context.Entry(competition).State = EntityState.Modified;
 
         try
         {
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -98,7 +85,7 @@ public class CompetitionApp
 
     public async Task<Result<CompetitionView>> CreateAsync(CompetitionDto dto)
     {
-        var formula = await _context.Formula.FindAsync(dto.FormulaID);
+        var formula = await context.Formula.FindAsync(dto.FormulaID);
         if (formula is null)
         {
             return Result.Failure<CompetitionView>(CompetitionErrors.FormulaNotFound());
@@ -120,29 +107,29 @@ public class CompetitionApp
             Start = dto.Start
         };
 
-        _context.Competition.Add(competition);
-        await _context.SaveChangesAsync();
+        context.Competition.Add(competition);
+        await context.SaveChangesAsync();
 
         return new CompetitionView(competition);
     }
 
     public async Task<Result> RemoveAsync(int id)
     {
-        var competition = await _context.Competition.FindAsync(id);
+        var competition = await context.Competition.FindAsync(id);
         if (competition is null)
         {
             return Result.Failure(CompetitionErrors.NotFound());
         }
 
-        _context.Competition.Remove(competition);
-        await _context.SaveChangesAsync();
+        context.Competition.Remove(competition);
+        await context.SaveChangesAsync();
 
         return Result.Success();
     }
 
     private bool ItemExists(int id)
     {
-        return _context.Competition.Any(c => c.ID == id);
+        return context.Competition.Any(c => c.ID == id);
     }
 
     // Competition data must be in accordance to template.
@@ -151,7 +138,7 @@ public class CompetitionApp
     {
         if (rawDataTemp is null)
         {
-            rawDataTemp = await _context.Formula
+            rawDataTemp = await context.Formula
                 .Where(f => f.ID == dto.FormulaID)
                 .Select(f => f.DataTemplate)
                 .FirstOrDefaultAsync();
@@ -163,7 +150,7 @@ public class CompetitionApp
     // Reassess games and guesses associated with given competition.
     private async Task ReassessAssociatedGamesAsync(int competitionId, CompetitionDto dto)
     {
-        var games = await _context.Game
+        var games = await context.Game
             .Where(g => g.CompetitionID == competitionId)
             .Include(g => g.Guesses)
             .ToListAsync();

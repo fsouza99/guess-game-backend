@@ -6,11 +6,10 @@ namespace App.Applications;
 
 public static class QueryRefiner
 {
-	/*! Apply boundaries to query, allowing for pagination. */
-	public static IQueryable<T> Bound<T>(
-        IQueryable<T> query, int? offset = null, int? limit = null)
-	{
-		if (offset is not null)
+    /*! Apply boundaries to query, allowing for pagination. */
+    public static IQueryable<T> Bound<T>(IQueryable<T> query, int? offset = null, int? limit = null)
+    {
+        if (offset is not null)
         {
             query = query.Skip((int) offset);
         }
@@ -19,13 +18,10 @@ public static class QueryRefiner
             query = query.Take((int) limit);
         }
         return query;
-	}
+    }
 
     public static IQueryable<Formula> Formulas(
-        IQueryable <Formula> query,
-        string? name = null,
-        int? offset = null,
-        int? limit = null)
+        IQueryable<Formula> query, string? name = null, int? offset = null, int? limit = null)
     {
         if (!string.IsNullOrEmpty(name))
         {
@@ -35,7 +31,7 @@ public static class QueryRefiner
     }
 
     public static IQueryable<Competition> Competitions(
-        IQueryable <Competition> query,
+        IQueryable<Competition> query,
         int? formulaId = null,
         string? name = null,
         bool activeOnly = false,
@@ -58,7 +54,7 @@ public static class QueryRefiner
     }
 
     public static IQueryable<Game> Games(
-        IQueryable <Game> query,
+        IQueryable<Game> query,
         int? competitionId = null,
         string? appUserId = null,
         string? name = null,
@@ -86,7 +82,7 @@ public static class QueryRefiner
     }
 
     public static IQueryable<Guess> Guesses(
-        IQueryable <Guess> query,
+        IQueryable<Guess> query,
         string? gameId = null,
         string? name = null,
         int? offset = null,
