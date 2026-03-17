@@ -1,14 +1,12 @@
 using App.Globals;
-using App.Infrastructure;
 using App.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
 
 namespace App.Applications;
 
-public class GameApp(IAppDbContext context, IAuthorizationService authService) : IGameApp
+public class GameApp(IAppDbContext context, IAppAuthorization authService) : IGameApp
 {
     public static readonly int MinSubSpan = 5;
 
@@ -79,7 +77,7 @@ public class GameApp(IAppDbContext context, IAuthorizationService authService) :
             return Result.Failure(GameErrors.NotFound());
         }
 
-        if (!(await UserCanUpdateAsync(user, game)))
+        if (!(await authService.UserCanUpdateGameAsync(user, game)))
         {
             return Result.Failure(GameErrors.CannotUpdate());
         }
@@ -167,7 +165,7 @@ public class GameApp(IAppDbContext context, IAuthorizationService authService) :
             return Result.Failure(GameErrors.NotFound());
         }
 
-        if (!(await UserCanDeleteAsync(user, game)))
+        if (!(await authService.UserCanDeleteGameAsync(user, game)))
         {
             return Result.Failure(GameErrors.CannotDelete());
         }
@@ -203,20 +201,6 @@ public class GameApp(IAppDbContext context, IAuthorizationService authService) :
     private bool RulesMatchTemplate(JsonDocument rules, string temp)
     {
         return JsonDataChecker.ScoringRulesOnTemplate(rules, JsonDocument.Parse(temp));
-    }
-
-    // Check whether current user can delete game: only owner and staff are allowed.
-    private async Task<bool> UserCanDeleteAsync(ClaimsPrincipal user, Game game)
-    {
-        var authCheck = await authService.AuthorizeAsync(user, game, Operations.Delete);
-        return authCheck.Succeeded;
-    }
-
-    // Check whether current user can update game: only owner is allowed.
-    private async Task<bool> UserCanUpdateAsync(ClaimsPrincipal user, Game game)
-    {
-        var authCheck = await authService.AuthorizeAsync(user, game, Operations.Update);
-        return authCheck.Succeeded;
     }
 }
 

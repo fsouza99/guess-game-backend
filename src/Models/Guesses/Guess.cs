@@ -24,4 +24,6 @@ public class Guess : Entity
     public int Number { get; set; }
 
     public int Score { get; set; }
+
+    public Game Game { get; set; } = default!;
 }

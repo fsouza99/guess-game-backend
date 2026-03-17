@@ -1,14 +1,12 @@
 using App.Globals;
-using App.Infrastructure;
 using App.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
 
 namespace App.Applications;
 
-public class GuessApp(IAppDbContext context, IAuthorizationService authService) : IGuessApp
+public class GuessApp(IAppDbContext context, IAppAuthorization authService) : IGuessApp
 {
     public async Task<Result<int>> CountAsync(string? gameId, string? name)
     {
@@ -103,13 +101,15 @@ public class GuessApp(IAppDbContext context, IAuthorizationService authService) 
     {
         var guess = await context.Guess
             .Where(g => g.GameID == gameId && g.Number == number)
+            .Include(g => g.Game)
             .FirstOrDefaultAsync();
         if (guess is null)
         {
             return Result.Failure(GuessErrors.NotFound());
         }
 
-        if (!(await UserCanDelete(user, gameId)))
+        // Only those who can delete a game can delete its guesses.
+        if (!(await authService.UserCanDeleteGameAsync(user, guess.Game)))
         {
             return Result.Failure(GuessErrors.CannotDelete());
         }
@@ -118,13 +118,6 @@ public class GuessApp(IAppDbContext context, IAuthorizationService authService) 
         await context.SaveChangesAsync();
 
         return Result.Success();
-    }
-
-    private async Task<bool> UserCanDelete(ClaimsPrincipal user, string gameId)
-    {
-        var game = await context.Game.FindAsync(gameId);
-        var authCheck = await authService.AuthorizeAsync(user, game, Operations.Delete);
-        return authCheck.Succeeded;
     }
 }
 

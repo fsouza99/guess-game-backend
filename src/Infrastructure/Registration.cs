@@ -45,14 +45,10 @@ public static class InfrastructureServicesRegistration
 
         services.ConfigureIdentity();
 
-        services.AddAuthorizationHandlers();
-
-        return services;
-    }
-
-    private static IServiceCollection AddAuthorizationHandlers(this IServiceCollection services)
-    {
         services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
+
+        services.AddSingleton<IAppAuthorization, AppAuthorization>();
+
         return services;
     }
 
