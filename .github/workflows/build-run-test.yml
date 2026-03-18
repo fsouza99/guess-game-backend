@@ -15,30 +15,28 @@ jobs:
         with:
           path: backend
 
-      - name: Build app
-        run: dotnet build backend\App.sln
+      - name: Enter app repo
+        run: cd backend;
 
-      - name: Checkout unit tests repo
-        uses: actions/checkout@v4
-        with:
-          path: unit-tests
-          ref: master
-          repository: fsouza99/guess-game-backend-unit-testing
-          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Build app
+        run: dotnet build;
 
       - name: Run unit tests
-        run: cd unit-tests; dotnet test; cd ..
+        run: cd tests; dotnet test; cd ..
 
       - name: Run app
-        run: Start-Process dotnet -ArgumentList "run", "--project", "backend\src\Api"
+        run: cd src\Api; Start-Process dotnet -ArgumentList "run"; cd ..\..
+
+      - name: Leave app repo
+        run: cd ..
 
       - name: Checkout API test repo
         uses: actions/checkout@v4
         with:
-          path: integration-tests
+          path: api-tests
           ref: master
           repository: fsouza99/guess-game-backend-testing
           token: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run API tests
-        run: cd integration-tests; pytest; cd ..
+        run: cd api-tests; pytest; cd ..
