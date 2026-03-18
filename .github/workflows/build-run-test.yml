@@ -13,32 +13,32 @@ jobs:
       - name: Checkout app repo
         uses: actions/checkout@v4
         with:
-          path: AppRepo
+          path: backend
 
       - name: Build app
-        run: dotnet build AppRepo\App.sln
+        run: dotnet build backend\App.sln
 
       - name: Checkout unit tests repo
         uses: actions/checkout@v4
         with:
-          path: UnitTestRepo
+          path: unit-tests
           ref: master
           repository: fsouza99/guess-game-backend-unit-testing
           token: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run unit tests
-        run: cd UnitTestRepo; dotnet test; cd ..
+        run: cd unit-tests; dotnet test; cd ..
 
       - name: Run app
-        run: Start-Process dotnet -ArgumentList "run", "--project", "AppRepo"
+        run: Start-Process dotnet -ArgumentList "run", "--project", "backend\src\Api"
 
       - name: Checkout API test repo
         uses: actions/checkout@v4
         with:
-          path: ApiTestRepo
+          path: integration-tests
           ref: master
           repository: fsouza99/guess-game-backend-testing
           token: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run API tests
-        run: cd ApiTestRepo; pytest; cd ..
+        run: cd integration-tests; pytest; cd ..
