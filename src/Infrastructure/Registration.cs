@@ -26,6 +26,8 @@ public static class InfrastructureServicesRegistration
             .AddDbContext(configuration, useDbServer)
             .AddAppAuthorization();
 
+        services.ConfigureIdentity(configuration);
+
         return services;
     }
 
@@ -42,8 +44,6 @@ public static class InfrastructureServicesRegistration
             .AddIdentityApiEndpoints<AppUser>()
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
-
-        services.ConfigureIdentity();
 
         services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
 
@@ -107,7 +107,8 @@ public static class InfrastructureServicesRegistration
         return services;
     }
 
-    private static IServiceCollection ConfigureIdentity(this IServiceCollection services)
+    private static IServiceCollection ConfigureIdentity(
+        this IServiceCollection services, IConfiguration configuration)
     {
         services
             .Configure<IdentityOptions>(options =>
@@ -117,7 +118,9 @@ public static class InfrastructureServicesRegistration
                     options.Password.RequireLowercase = false;
                     options.Password.RequireNonAlphanumeric = false;
                 })
-            .ConfigureApplicationCookie(options => { options.Cookie.Name = "GuessGame"; });
+            .ConfigureApplicationCookie(options => {
+                options.Cookie.Name = configuration["Authentication:CookieName"]!;
+            });
         return services;
     }
 }
