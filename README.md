@@ -1,22 +1,45 @@
 # Palpite Amigo (backend)
 
-## O popular *bolão*
-
 ### Sobre
 
-Este projeto ASP<span>.</span>NET Core implementa uma Web API para validação, registro e valoração de competições esportivas e palpites para seus resultados.
+Este projeto implementa uma API para organização de palpites esportivos.
 
-Usuários cadastrados podem organizar disputas onde palpites podem ser deixados para uma competição em particular, provendo regras customizadas de participação e pontuação.
+Usuários cadastrados podem criar disputas onde visitantes palpitam para uma competição em particular, provendo regras customizadas de participação e pontuação.
 
-### Controladores principais
+### Objetos de Domínio
 
-**Formatos**: Cada formato de competição define modelos de dados esportivos e regras de pontuação a serem reforçados pela aplicação.
+**Usuários**: Usuários da aplicação possuem e-mail, senha e apelido.
 
-**Competições**: Cada competição implementa a identidade de um torneio esportivo real que faz uso de um formato conhecido.
+- Esquemas de autenticação e autorização são baseados no AspNet Core Identity.
+- O sistema utiliza política de *roles*: *staff* e *adm*.
+- Endpoints e objetos são protegidos onde necessário.
 
-**Jogos**: Usuários cadastrados podem criar e gerir jogos, que organizam palpites direcionados a uma competição selecionada. Seu autor pode definir regras de pontuação e acesso.
+**Formatos**: Cada formato de competição define um modelo de dados esportivos e regras de pontuação a ser reforçado pela aplicação nas competições associadas.
+
+**Competições**: Cada competição implementa a identidade de um torneio esportivo que faz uso de um formato conhecido.
+
+**Jogos**: Usuários cadastrados podem criar e gerir jogos, que organizam palpites associados a uma competição selecionada. Seu autor pode definir regras de pontuação e acesso.
 
 **Palpites**: Um palpite para resultados de eventos reais é atrelado a um jogo. Usuários da API podem palpitar sem autenticação, mas ainda sujeitos às regras de pontuação e acesso definidas pelo autor do jogo.
+
+### Infra
+
+Todo o projeto foi construído com o AspNet Core num esquema de arquitetura limpa com 5 componentes (DLLs).
+
+**Api**: apresentação;
+
+- O Swagger está disponível como opção para exploração da API pelo navegador.
+
+**Applications**: casos de uso;
+
+**Globals**: objetos compartilhados;
+
+**Infrastructure**: bancos de dados e serviços externos;
+
+- São utilizados o SQL Server e o SQLite, este último para testes.
+- Há um serviço de envio de e-mails na forma de um cliente RabbitMQ que envia mensagens ao *message broker* com dados que outro serviço externo poderá consumir.
+
+**Models**: Domínio.
 
 ### Execução
 
@@ -28,14 +51,8 @@ dotnet run [options]
 
 As opções implementadas pelo *app* são as seguintes:
 
-- --dbserver: Utiliza o servidor de banco de dados programado. Por padrão, o SQLite é utilizado.
-- --msgserver: Utiliza o servidor de mensageria programado. Por padrão, um *stub*, que nada realiza, é utilizado.
-- --swagger: Habilita a interação com a API pelo Swagger UI no navegador.
+- -\-dbserver: Utiliza o servidor de banco de dados programado. Por padrão, o SQLite é utilizado.
+- -\-msgserver: Utiliza o servidor de mensageria programado. Por padrão, um *stub*, que nada realiza, é utilizado.
+- -\-swagger: Habilita a interação com a API pelo Swagger UI no navegador.
 
 O *workflow* de teste executa a aplicação sem nenhuma opção.
-
-### *Notas*
-
-A aplicação valida os dados inseridos para garantir sua integridade.
-
-Esquemas de autenticação e autorização são baseados no ASP<span>.</span>NET Core Identity.

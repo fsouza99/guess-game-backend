@@ -14,11 +14,7 @@ public class EmailAppMessenger : IEmailAppMessenger
     }
 
     public async Task EmailGameFullnessAsync(
-        int maxGuessCount,
-        string gameId,
-        string gameName,
-        string recipient,
-        string userNick)
+        int maxGuessCount, string gameId, string gameName, string recipient, string userNick)
     {
         var data = new
         {
