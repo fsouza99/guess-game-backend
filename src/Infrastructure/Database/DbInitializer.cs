@@ -1,28 +1,17 @@
 using App.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Text.Json;
 
 namespace App.Infrastructure;
 
-public class DbInitializer
+public class DbInitializer(IServiceProvider serviceProvider, AppDbContext context)
 {
-    private readonly AppDbContext _context;
-    private readonly IServiceProvider _serviceProvider;
-
-    // The password used by all added users.
-    private const string StdPass = "Passw0rd";
-
-    public DbInitializer(IServiceProvider serviceProvider, AppDbContext context)
-    {
-        _serviceProvider = serviceProvider;
-        _context = context;
-    }
-
     private void AddJsonData<T>(string filename, DbSet<T> dbSet) where T : class
     {
-        string filepath = $"src\\Infrastructure\\Database\\Placeholders\\{filename}.json";
+        string filepath = $"..\\Infrastructure\\Database\\Placeholders\\{filename}.json";
         string data = File.ReadAllText(filepath);
         List<T> objs = JsonSerializer.Deserialize<List<T>>(data)!;
         dbSet.AddRange(objs);
@@ -30,8 +19,9 @@ public class DbInitializer
 
     private async Task AddAppUsersAsync()
     {
-        var manager = _serviceProvider.GetService<UserManager<AppUser>>()!;
-        
+        const string StdPass = "Passw0rd";
+        var manager = serviceProvider.GetService<UserManager<AppUser>>()!;
+
         var user1 = new AppUser
         {
             Email = "ajquill@gmail.com",
@@ -67,7 +57,7 @@ public class DbInitializer
 
     private async Task AddRolesAsync()
     {
-        var manager = _serviceProvider.GetService<RoleManager<IdentityRole>>()!;
+        var manager = serviceProvider.GetService<RoleManager<IdentityRole>>()!;
         var roles = new string[] { RoleReference.Admin, RoleReference.Staff };
         foreach (var role in roles)
         {
@@ -85,12 +75,12 @@ public class DbInitializer
     public async Task AddBusinessDataToContext()
     {
         // Insert orderly to respect FK constraints.
-        AddJsonData<Formula>("Formulas", _context.Formula);
-        AddJsonData<Competition>("Competitions", _context.Competition);
-        AddJsonData<Game>("Games", _context.Game);
-        AddJsonData<Guess>("Guesses", _context.Guess);
+        AddJsonData<Formula>("Formulas", context.Formula);
+        AddJsonData<Competition>("Competitions", context.Competition);
+        AddJsonData<Game>("Games", context.Game);
+        AddJsonData<Guess>("Guesses", context.Guess);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     public async Task AddUserAndBusinessDataToContext()

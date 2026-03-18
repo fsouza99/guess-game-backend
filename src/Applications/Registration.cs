@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace App.Applications;
 
 public static class ApplicationServicesRegistration

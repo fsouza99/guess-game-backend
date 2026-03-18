@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+
 namespace App.Infrastructure;
 
 public class EmailAppMessenger : IEmailAppMessenger

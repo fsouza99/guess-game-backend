@@ -16,7 +16,7 @@ jobs:
           path: AppRepo
 
       - name: Build app
-        run: dotnet build AppRepo\GuessGame.csproj
+        run: dotnet build AppRepo\App.sln
 
       - name: Checkout unit tests repo
         uses: actions/checkout@v4
