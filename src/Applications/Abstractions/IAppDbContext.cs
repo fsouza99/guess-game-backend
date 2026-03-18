@@ -2,7 +2,7 @@ using App.Models;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.Globals;
+namespace App.Applications;
 
 public interface IAppDbContext
 {

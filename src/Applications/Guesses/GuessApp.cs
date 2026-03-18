@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace App.Applications;
 
-public class GuessApp(IAppDbContext context, IAppAuthorization authService) : IGuessApp
+public class GuessApp(IAppDbContext context, IEntityAuthorization<Game> authService) : IGuessApp
 {
     public async Task<Result<int>> CountAsync(string? gameId, string? name)
     {
@@ -109,7 +109,7 @@ public class GuessApp(IAppDbContext context, IAppAuthorization authService) : IG
         }
 
         // Only those who can delete a game can delete its guesses.
-        if (!(await authService.UserCanDeleteGameAsync(user, guess.Game)))
+        if (!(await authService.UserCanDeleteAsync(user, guess.Game)))
         {
             return Result.Failure(GuessErrors.CannotDelete());
         }

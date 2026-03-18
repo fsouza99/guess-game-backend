@@ -5,17 +5,17 @@ using System.Security.Claims;
 
 namespace App.Infrastructure;
 
-public class AppAuthorization(IAuthorizationService authService) : IAppAuthorization
+public class GameAuthorization(IAuthorizationService authService) : IEntityAuthorization<Game>
 {
     // Check whether current user can delete game: only owner and staff are allowed.
-    public async Task<bool> UserCanDeleteGameAsync(ClaimsPrincipal user, Game game)
+    public async Task<bool> UserCanDeleteAsync(ClaimsPrincipal user, Game game)
     {
         var authCheck = await authService.AuthorizeAsync(user, game, Operations.Delete);
         return authCheck.Succeeded;
     }
 
     // Check whether current user can update game: only owner is allowed.
-    public async Task<bool> UserCanUpdateGameAsync(ClaimsPrincipal user, Game game)
+    public async Task<bool> UserCanUpdateAsync(ClaimsPrincipal user, Game game)
     {
         var authCheck = await authService.AuthorizeAsync(user, game, Operations.Update);
         return authCheck.Succeeded;

@@ -47,7 +47,7 @@ public static class InfrastructureServicesRegistration
 
         services.AddSingleton<IAuthorizationHandler, GameOpAuthorizationHandler>();
 
-        services.AddSingleton<IAppAuthorization, AppAuthorization>();
+        services.AddSingleton<IEntityAuthorization<Game>, GameAuthorization>();
 
         return services;
     }

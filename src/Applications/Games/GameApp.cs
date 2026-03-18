@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace App.Applications;
 
-public class GameApp(IAppDbContext context, IAppAuthorization authService) : IGameApp
+public class GameApp(IAppDbContext context, IEntityAuthorization<Game> authService) : IGameApp
 {
     public static readonly int MinSubSpan = 5;
 
@@ -77,7 +77,7 @@ public class GameApp(IAppDbContext context, IAppAuthorization authService) : IGa
             return Result.Failure(GameErrors.NotFound());
         }
 
-        if (!(await authService.UserCanUpdateGameAsync(user, game)))
+        if (!(await authService.UserCanUpdateAsync(user, game)))
         {
             return Result.Failure(GameErrors.CannotUpdate());
         }
@@ -165,7 +165,7 @@ public class GameApp(IAppDbContext context, IAppAuthorization authService) : IGa
             return Result.Failure(GameErrors.NotFound());
         }
 
-        if (!(await authService.UserCanDeleteGameAsync(user, game)))
+        if (!(await authService.UserCanDeleteAsync(user, game)))
         {
             return Result.Failure(GameErrors.CannotDelete());
         }
