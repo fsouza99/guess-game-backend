@@ -1,5 +1,4 @@
 using App.Models;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.Applications;
@@ -11,8 +10,6 @@ public interface IAppDbContext
     DbSet<Competition> Competition { get; set; }
     DbSet<Game> Game { get; set; }
     DbSet<Guess> Guess { get; set; }
-
-    EntityEntry Entry(object entity);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

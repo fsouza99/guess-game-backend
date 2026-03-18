@@ -94,8 +94,6 @@ public class GameApp(IAppDbContext context, IEntityAuthorization<Game> authServi
         game.Passcode = dto.Passcode;
         game.SubsDeadline = dto.SubsDeadline;
 
-        context.Entry(game).State = EntityState.Modified;
-
         try
         {
             await context.SaveChangesAsync();

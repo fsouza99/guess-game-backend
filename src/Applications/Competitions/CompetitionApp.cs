@@ -64,8 +64,6 @@ public class CompetitionApp(IAppDbContext context) : ICompetitionApp
         competition.Start = dto.Start;
         competition.End = dto.End;
 
-        context.Entry(competition).State = EntityState.Modified;
-
         try
         {
             await context.SaveChangesAsync();

@@ -45,8 +45,6 @@ public class FormulaApp(IAppDbContext context) : IFormulaApp
         formula.Description = dto.Description;
         formula.Name = dto.Name;
 
-        context.Entry(formula).State = EntityState.Modified;
-
         try
         {
             await context.SaveChangesAsync();
