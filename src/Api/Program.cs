@@ -31,5 +31,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapIdentityApi<AppUser>();
 app.MapExtraIdentityEndpoints();
+app.MapGetHealthCheckEndpoint();
 
 app.Run();

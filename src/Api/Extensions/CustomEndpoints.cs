@@ -20,6 +20,12 @@ public static class CustomEndpoints
         app.MapPostNicknameEndpoint();
     }
 
+    // Add a health check endpoint.
+    public static void MapGetHealthCheckEndpoint(this WebApplication app)
+    {
+        app.MapGet("/health", () => Results.Ok());
+    }
+
     // Add endpoint to register an account using email, nickname and password.
     public static void MapPostAppUser(this WebApplication app)
     {

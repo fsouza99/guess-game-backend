@@ -15,20 +15,17 @@ jobs:
         with:
           path: backend
 
-      - name: Enter app repo
-        run: cd backend;
-
       - name: Build app
-        run: dotnet build;
+        working-directory: backend
+        run: dotnet build
 
       - name: Run unit tests
-        run: cd tests; dotnet test; cd ..
+        working-directory: backend\tests
+        run: dotnet test
 
-      - name: Run app
-        run: cd src\Api; Start-Process dotnet -ArgumentList "run"; cd ..\..
-
-      - name: Leave app repo
-        run: cd ..
+      - name: Run app in background
+        working-directory: backend\src\Api
+        run: Start-Process dotnet -ArgumentList "run --no-build"
 
       - name: Checkout API test repo
         uses: actions/checkout@v4
@@ -38,5 +35,29 @@ jobs:
           repository: fsouza99/guess-game-backend-testing
           token: ${{ secrets.ACCESS_TOKEN }}
 
+      - name: Wait for API
+        run: |
+          $url = "http://localhost:5284/health"
+          $isReady = $false
+          for ($i = 1; $i -le 10; $i++) {
+            try {
+              $resp = Invoke-WebRequest -Uri $url -Method Get -TimeoutSec 2
+              if ($resp.StatusCode -eq 200) { $isReady = $true; break }
+            } catch { Start-Sleep -Seconds 5 }
+          }
+          if (-not $isReady) { 
+            Write-Error "API did not respond in time."
+            exit 1 
+          }
+
       - name: Run API tests
-        run: cd api-tests; pytest; cd ..
+        working-directory: api-tests
+        run: pytest
+
+      - name: End app process, delete created folders
+        if: always()
+        run: |
+          Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Stop-Process -Force
+          if (Test-Path "backend") { Remove-Item -Recurse -Force "backend" }
+          if (Test-Path "api-tests") { Remove-Item -Recurse -Force "api-tests" }
+
