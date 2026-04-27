@@ -59,4 +59,4 @@ O *workflow* de teste executa a aplicação sem nenhuma opção.
 
 ### Demonstração
 
-Acesse [este artigo](https://sites.google.com/view/fsouza/projetos/palpites-app) para aprender mais e ver uma demonstração do projeto com o front-end.
+Acesse [este artigo](https://sites.google.com/view/fsouza/projetos/palpites-app) para aprender mais e ver uma demonstração do projeto com o frontend.
