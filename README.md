@@ -56,3 +56,7 @@ As opções implementadas pelo *app* são as seguintes:
 - -\-swagger: Habilita a interação com a API pelo Swagger UI no navegador.
 
 O *workflow* de teste executa a aplicação sem nenhuma opção.
+
+### Demonstração
+
+Acesse [este artigo](https://sites.google.com/view/fsouza/projetos/palpites-app) para aprender mais e ver uma demonstração do projeto com o front-end.
